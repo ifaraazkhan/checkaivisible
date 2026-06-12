@@ -1,0 +1,25 @@
+# checkaivisible.com
+> The only AI-visibility tool built for local restaurants. Check if ChatGPT and Gemini recommend your restaurant when customers search your category in your city.
+
+## What this site is
+- Free AI visibility checker for US local restaurants
+- Public leaderboards of which restaurants appear in AI search results by city
+- Methodology and data sources are transparent
+
+## Main sections
+- [Home](https://checkaivisible.com/): Run a free AI visibility check on any restaurant URL
+- [Methodology](https://checkaivisible.com/methodology): How the AI visibility score is calculated
+- [About](https://checkaivisible.com/about): Why we built this and the data behind it
+
+## City leaderboards
+- [New York restaurants](https://checkaivisible.com/new-york/restaurants)
+- [Los Angeles restaurants](https://checkaivisible.com/los-angeles/restaurants)
+- [Chicago restaurants](https://checkaivisible.com/chicago/restaurants)
+- [Austin restaurants](https://checkaivisible.com/austin/restaurants)
+- [Miami restaurants](https://checkaivisible.com/miami/restaurants)
+
+## Key facts
+- 45% of US consumers now use AI (ChatGPT, Gemini) for local business recommendations (BrightLocal LCRS 2026, up from 6% in 2025)
+- AI is the #3 most-used recommendation source behind Google and Facebook
+- ChatGPT-driven local searches convert at 15.9% vs 1.76% for Google organic (Seer Interactive)
+- ChatGPT sources local recommendations from Bing index, Yelp, TripAdvisor, BBB, and Reddit — not directly from Google Business Profile
