@@ -99,7 +99,7 @@ export function AuditForm({
 
       {/* Input row */}
       <div
-        className={`group relative rounded-2xl border border-border bg-card/80 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_28px_-12px_rgba(0,0,0,0.12)] backdrop-blur-md transition-shadow focus-within:shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_40px_-12px_oklch(0.52_0.21_264/0.35),0_0_0_3px_oklch(0.52_0.21_264/0.12)]`}
+        className={`group relative rounded-2xl border border-border bg-card/80 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.2)] backdrop-blur-md transition-shadow focus-within:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_12px_40px_-12px_oklch(0.78_0.09_85/0.25),0_0_0_2px_oklch(0.78_0.09_85/0.4)]`}
       >
         {mode === "url" ? (
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

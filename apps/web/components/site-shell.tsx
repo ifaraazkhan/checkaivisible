@@ -3,22 +3,21 @@ import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="group flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
-          <span className="relative inline-flex h-6 w-6 items-center justify-center rounded-md bg-foreground text-background">
-            <span className="absolute inset-0 rounded-md bg-gradient-to-br from-primary to-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <span className="relative font-mono text-[11px] font-bold">cv</span>
+    <header className="sticky top-0 z-40 border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+        <Link href="/" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <span className="font-mono text-[11px] font-bold">cv</span>
           </span>
           checkaivisible
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm md:flex">
           <Link
-            href={"/#features" as const}
+            href={"/#leaderboards" as const}
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
-            Features
+            Leaderboards
           </Link>
           <Link
             href={"/#how-it-works" as const}
@@ -27,16 +26,10 @@ export function SiteHeader() {
             How it works
           </Link>
           <Link
-            href={"/partners" as const}
+            href={"/#methodology" as const}
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
-            Partners
-          </Link>
-          <Link
-            href={"/docs" as const}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            API
+            Methodology
           </Link>
         </nav>
 
@@ -44,9 +37,9 @@ export function SiteHeader() {
           <Button
             asChild
             size="sm"
-            className="h-8 rounded-full px-4 text-xs font-medium shadow-sm"
+            className="h-8 rounded-full px-4 text-xs font-medium"
           >
-            <Link href={"/#check" as const}>Check your business →</Link>
+            <Link href={"/#check" as const}>Check your visibility</Link>
           </Button>
         </div>
       </div>
@@ -56,58 +49,58 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-16 border-t border-border/60">
+    <footer className="relative mt-16 border-t border-border">
       <div className="absolute inset-x-0 top-0 mx-auto h-px max-w-6xl bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-foreground text-background">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary text-primary-foreground">
                 <span className="font-mono text-[9px] font-bold">cv</span>
               </span>
               checkaivisible
             </div>
             <p className="mt-3 max-w-xs text-xs leading-relaxed text-muted-foreground">
-              Telemetry for AI discovery. Measure how often ChatGPT and Gemini recommend your local business.
+              We ask ChatGPT, Gemini and Perplexity &ldquo;best X&rdquo; every week —
+              and publish what they answer. Free, sourced, tracked over time.
             </p>
           </div>
 
           <FooterCol
-            title="Product"
+            title="Explore"
             links={[
-              { label: "Check your business", href: "/" },
+              { label: "Leaderboards", href: "/#leaderboards" },
+              { label: "Check your visibility", href: "/#check" },
               { label: "How it works", href: "/#how-it-works" },
-              { label: "Pricing", href: "/#pricing" },
-              { label: "API", href: "/docs" },
+              { label: "Methodology", href: "/#methodology" },
             ]}
           />
           <FooterCol
-            title="Solutions"
+            title="Leaderboards"
             links={[
-              { label: "Restaurants", href: "/" },
-              { label: "Dental practices", href: "/" },
-              { label: "Law firms", href: "/" },
-              { label: "Home services", href: "/" },
-              { label: "Spa & wellness", href: "/" },
+              { label: "Best CRM", href: "/#leaderboards" },
+              { label: "Best AI coding assistant", href: "/#leaderboards" },
+              { label: "Austin restaurants", href: "/#leaderboards" },
+              { label: "NYC dentists", href: "/#leaderboards" },
             ]}
           />
           <FooterCol
             title="Company"
             links={[
-              { label: "Partners", href: "/partners" },
               { label: "Contact", href: "mailto:hello@checkaivisible.com" },
+              { label: "API (pilot)", href: "/docs" },
             ]}
           />
         </div>
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
-          <div>© {new Date().getFullYear()} checkaivisible · Built for local businesses worldwide.</div>
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
+          <div>© {new Date().getFullYear()} checkaivisible · Rankings are observations of public AI output, refreshed weekly.</div>
           <div className="flex items-center gap-2">
             <span className="relative inline-flex h-2 w-2">
               <span className="absolute inset-0 rounded-full bg-success" />
               <span className="absolute inset-0 animate-ping rounded-full bg-success/60" />
             </span>
-            All systems operational
+            Tracking live
           </div>
         </div>
       </div>

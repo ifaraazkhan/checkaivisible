@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import { AnnouncementBar } from "@/components/announcement-bar";
 import { SiteFooter, SiteHeader } from "@/components/site-shell";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://checkaivisible.com";
@@ -18,14 +17,21 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "checkaivisible — Telemetry for AI discovery",
+    default: "checkaivisible — Who does AI actually recommend?",
     template: "%s | checkaivisible",
   },
   description:
-    "Measure how often ChatGPT and Gemini recommend your local business — across the 20 highest-intent prompts in your city. Free score in 30 seconds.",
+    "We ask ChatGPT, Gemini & Perplexity \"best X\" every week — and publish what they answer. Live leaderboards, sourced citations, free visibility check.",
   openGraph: {
     type: "website",
     siteName: "checkaivisible",
@@ -40,10 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
     >
       <body className="flex min-h-screen flex-col antialiased">
-        <AnnouncementBar />
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />
