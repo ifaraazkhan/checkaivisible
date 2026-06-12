@@ -14,7 +14,7 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-7 font-mono text-xs uppercase tracking-[0.14em] md:flex">
           {[
-            { n: "01", label: "Ledger", href: "/#ledger" },
+            { n: "01", label: "Ledgers", href: "/leaderboards" },
             { n: "02", label: "Method", href: "/#method" },
             { n: "03", label: "Check", href: "/#check" },
           ].map((item) => (
@@ -64,19 +64,18 @@ export function SiteFooter() {
           <FooterCol
             title="Explore"
             links={[
-              { label: "Leaderboards", href: "/#leaderboards" },
+              { label: "All ledgers", href: "/leaderboards" },
               { label: "Check your visibility", href: "/#check" },
-              { label: "How it works", href: "/#how-it-works" },
-              { label: "Methodology", href: "/#methodology" },
+              { label: "The method", href: "/#method" },
             ]}
           />
           <FooterCol
-            title="Leaderboards"
+            title="Ledgers"
             links={[
-              { label: "Best CRM", href: "/#leaderboards" },
-              { label: "Best AI coding assistant", href: "/#leaderboards" },
-              { label: "Austin restaurants", href: "/#leaderboards" },
-              { label: "NYC dentists", href: "/#leaderboards" },
+              { label: "Best CRM", href: "/best-crm" },
+              { label: "Best AI coding tool", href: "/best-ai-coding-tool" },
+              { label: "Austin restaurants", href: "/austin/restaurants" },
+              { label: "NYC dentists", href: "/nyc/dentists" },
             ]}
           />
           <FooterCol

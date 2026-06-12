@@ -24,11 +24,16 @@ export function DrawnLeaderboard() {
 
   return (
     <div>
-      <div className="flex items-baseline justify-between">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-lg font-medium tracking-tight">
           {LEDGER_CATEGORY} <span className="text-muted-foreground">— according to AI</span>
         </h3>
-        <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{LEDGER_UPDATED}</span>
+        <span className="flex items-center gap-4 font-mono text-[11px] tabular-nums text-muted-foreground">
+          {LEDGER_UPDATED}
+          <a href="/best-crm" className="text-primary underline-offset-4 hover:underline">
+            open full ledger →
+          </a>
+        </span>
       </div>
 
       {/* column heads */}

@@ -139,8 +139,8 @@ function Hero() {
 
       <div className="reveal reveal-5 mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 pb-16 pt-8 sm:flex-row sm:justify-center sm:gap-6">
         <Button asChild size="lg" className="h-12 rounded-lg px-7">
-          <Link href={"/#ledger" as const}>
-            Read the ledger <ArrowRight />
+          <Link href={"/leaderboards" as const}>
+            Read the ledgers <ArrowRight />
           </Link>
         </Button>
         <Link

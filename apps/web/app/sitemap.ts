@@ -1,20 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const LAUNCH_CITIES = [
-  "new-york",
-  "los-angeles",
-  "chicago",
-  "austin",
-  "miami",
-];
-
-const LAUNCH_CATEGORIES = [
-  "restaurants",
-  "dentists",
-  "lawyers",
-  "plumbers",
-  "spas",
-];
+import { LEDGERS } from "@/lib/ledger-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://checkaivisible.com";
@@ -22,21 +7,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, lastModified: now, priority: 1.0 },
-    { url: `${siteUrl}/partners`, lastModified: now, priority: 0.9 },
-    { url: `${siteUrl}/docs`, lastModified: now, priority: 0.7 },
-    { url: `${siteUrl}/about`, lastModified: now, priority: 0.6 },
-    { url: `${siteUrl}/methodology`, lastModified: now, priority: 0.6 },
+    { url: `${siteUrl}/leaderboards`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/docs`, lastModified: now, priority: 0.5 },
+    { url: `${siteUrl}/partners`, lastModified: now, priority: 0.5 },
   ];
 
-  const cityCategoryPages: MetadataRoute.Sitemap = LAUNCH_CITIES.flatMap((city) =>
-    LAUNCH_CATEGORIES.map((category) => ({
-      url: `${siteUrl}/${city}/${category}`,
-      lastModified: now,
-      changeFrequency: "daily" as const,
-      priority: 0.8,
-    })),
-  );
+  const ledgerPages: MetadataRoute.Sitemap = LEDGERS.map((ledger) => ({
+    url: `${siteUrl}/${ledger.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.9,
+  }));
 
-  // TODO (week 2): pull business pages from DB and append
-  return [...staticPages, ...cityCategoryPages];
+  return [...staticPages, ...ledgerPages];
 }
