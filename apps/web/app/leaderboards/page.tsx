@@ -15,10 +15,7 @@ export default function LeaderboardsPage() {
     <main>
       <CategoryTabs />
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-          <span className="text-primary">00</span> / index
-        </p>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
           <h1 className="font-display text-balance text-4xl sm:text-6xl">
             The ledgers, <em className="text-primary">all of them</em>
           </h1>

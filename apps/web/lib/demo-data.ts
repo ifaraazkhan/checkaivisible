@@ -37,48 +37,6 @@ export const HERO_CYCLES: HeroCycle[] = [
   },
 ];
 
-/* ---- The drawn leaderboard (section 01) ---- */
-
-export type LedgerRow = {
-  name: string;
-  /** mentioned in N of 5 runs, per engine */
-  runs: Record<Engine, number>;
-  /** rank over the last 8 weeks, oldest → newest (1 = top) */
-  history: number[];
-  delta: number;
-  isNew?: boolean;
-};
-
-export const LEDGER_CATEGORY = "Best CRM";
-export const LEDGER_UPDATED = "updated 2d ago";
-
-export const LEDGER_ROWS: LedgerRow[] = [
-  { name: "HubSpot", runs: { chatgpt: 5, gemini: 5, perplexity: 4 }, history: [2, 1, 1, 2, 1, 1, 1, 1], delta: 0 },
-  { name: "Salesforce", runs: { chatgpt: 5, gemini: 4, perplexity: 4 }, history: [1, 2, 2, 1, 2, 2, 2, 2], delta: 0 },
-  { name: "Pipedrive", runs: { chatgpt: 4, gemini: 3, perplexity: 4 }, history: [4, 4, 3, 4, 4, 4, 4, 3], delta: 1 },
-  { name: "Zoho CRM", runs: { chatgpt: 3, gemini: 4, perplexity: 2 }, history: [3, 3, 4, 3, 3, 3, 3, 4], delta: -1 },
-  { name: "Attio", runs: { chatgpt: 2, gemini: 1, perplexity: 3 }, history: [8, 8, 7, 7, 6, 6, 6, 5], delta: 2, isNew: true },
-];
-
-/* ---- Open ledgers index ---- */
-
-export type LedgerIndexEntry = {
-  label: string;
-  leader: string;
-  kind: "software" | "local";
-};
-
-export const LEDGER_INDEX: LedgerIndexEntry[] = [
-  { label: "Best CRM", leader: "HubSpot", kind: "software" },
-  { label: "Best AI coding tool", leader: "Cursor", kind: "software" },
-  { label: "Best email marketing tool", leader: "Klaviyo", kind: "software" },
-  { label: "Best note-taking app", leader: "Notion", kind: "software" },
-  { label: "Best project management tool", leader: "Linear", kind: "software" },
-  { label: "Austin · restaurants", leader: "Franklin Barbecue", kind: "local" },
-  { label: "Austin · tacos", leader: "Veracruz All Natural", kind: "local" },
-  { label: "NYC · dentists", leader: "Tend Dental", kind: "local" },
-];
-
 /* ---- This week's tape ---- */
 
 export type TapeItem = {

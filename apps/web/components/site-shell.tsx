@@ -12,18 +12,18 @@ export function SiteHeader() {
           checkaivisible
         </Link>
 
-        <nav className="hidden items-center gap-7 font-mono text-xs uppercase tracking-[0.14em] md:flex">
+        <nav className="hidden items-center gap-7 text-sm md:flex">
           {[
-            { n: "01", label: "Ledgers", href: "/leaderboards" },
-            { n: "02", label: "Method", href: "/#method" },
-            { n: "03", label: "Check", href: "/#check" },
+            { label: "Ledgers", href: "/leaderboards" },
+            { label: "Method", href: "/#method" },
+            { label: "Check", href: "/#check" },
           ].map((item) => (
             <Link
-              key={item.n}
+              key={item.label}
               href={item.href as never}
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              <span className="text-primary">{item.n}</span> {item.label}
+              {item.label}
             </Link>
           ))}
         </nav>

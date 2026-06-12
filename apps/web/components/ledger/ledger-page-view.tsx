@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { CategoryTabs } from "@/components/ledger/category-tabs";
 import { LedgerTable } from "@/components/ledger/ledger-table";
 import { Button } from "@/components/ui/button";
-import { LEDGERS, LEDGER_UPDATED_AT, NEXT_REFRESH, rankLedger, type Ledger } from "@/lib/ledger-data";
+import { LEDGER_UPDATED_AT, NEXT_REFRESH, rankLedger, type Ledger } from "@/lib/ledger-data";
 
 /*
   The full-page ledger view shared by every category route. Tabs navigate
@@ -11,7 +11,6 @@ import { LEDGERS, LEDGER_UPDATED_AT, NEXT_REFRESH, rankLedger, type Ledger } fro
 */
 export function LedgerPageView({ ledger }: { ledger: Ledger }) {
   const entries = rankLedger(ledger);
-  const index = LEDGERS.findIndex((l) => l.slug === ledger.slug) + 1;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -34,11 +33,7 @@ export function LedgerPageView({ ledger }: { ledger: Ledger }) {
 
       <div className="mx-auto max-w-6xl px-6 pb-24 pt-12 sm:pt-16">
         {/* header */}
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-          <span className="text-primary">{String(index).padStart(2, "0")}</span> / ledger ·{" "}
-          {ledger.kind === "local" ? ledger.city : "software"}
-        </p>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
           <h1 className="font-display text-balance text-4xl sm:text-6xl">
             {ledger.title}, <em className="text-primary">according to AI</em>
           </h1>
