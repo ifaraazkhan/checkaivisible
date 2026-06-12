@@ -19,7 +19,7 @@ Reference blend: Linear's discipline × Stripe's typographic confidence × a hin
 
 ## 2. Color Tokens
 
-Dark is the default and only launch theme (`<html class="dark">` permanently; a light variant is future work).
+Dark is the brand default; a full light theme ships alongside it (header toggle, persisted in `localStorage`, no-flash init script). Light mode swaps gold → bronze (`oklch(0.58 0.11 80)`) for contrast. Dark token values below; light counterparts live in `globals.css` `:root`.
 
 | Token | Value | Use |
 |---|---|---|
@@ -43,11 +43,11 @@ Rules:
 
 | Role | Font | Notes |
 |---|---|---|
-| Display / headings | **Instrument Serif** (Google, `next/font`) | High-contrast serif; the single biggest "expensive" signal. Hero at 56–80px, tracking-tight |
-| Body / UI | **Geist Sans** (already in repo) | 16px base, 1.6 line-height |
+| Display / headings | **Inter 600**, tracking −0.03em (`.font-display`) | Founder feedback: simple standard web fonts, no decorative serif (read as "magazine") |
+| Body / UI | **Inter** | 16px base, 1.6 line-height |
 | Ranks, scores, deltas, timestamps | **Geist Mono** + `tabular-nums` | Tabular figures are mandatory anywhere numbers can change |
 
-Scale: dramatic jumps (15px UI ↔ 64px+ display) = confidence. Avoid mid-size headings where possible.
+Scale: dramatic jumps (15px UI ↔ 56px+ display) = confidence. Avoid mid-size headings where possible. Data surfaces run full-width capped at 1440px; the table always comes before its explanation.
 
 ## 4. Motion Tokens
 

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter, SiteHeader } from "@/components/site-shell";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://checkaivisible.com";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
 });
@@ -14,13 +14,6 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin"],
-  weight: "400",
   display: "swap",
 });
 
@@ -41,14 +34,18 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+// Dark is the brand default; honor a previously chosen light theme before paint.
+const themeInit = `try{if(localStorage.getItem("cav-theme")==="light")document.documentElement.classList.remove("dark")}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
+      className={`dark ${inter.variable} ${geistMono.variable}`}
     >
       <body className="flex min-h-screen flex-col antialiased">
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />

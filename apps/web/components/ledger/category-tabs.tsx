@@ -8,7 +8,7 @@ import { LEDGERS } from "@/lib/ledger-data";
 export function CategoryTabs({ active }: { active?: string }) {
   return (
     <nav aria-label="Ledger categories" className="border-b border-border">
-      <div className="mx-auto flex max-w-6xl items-center gap-1.5 overflow-x-auto px-6 py-3 [scrollbar-width:none]">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-1.5 overflow-x-auto px-6 py-3 [scrollbar-width:none]">
         {LEDGERS.map((ledger) => {
           const isActive = ledger.slug === active;
           return (

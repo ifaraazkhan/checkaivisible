@@ -17,7 +17,7 @@ export default function HomePage() {
     <main className="overflow-hidden">
       <StatsBar />
       <Hero />
-      <section className="mx-auto max-w-6xl px-6">
+      <section className="mx-auto max-w-[1440px] px-6">
         <HomeLedger />
       </section>
       <div className="mt-14">
