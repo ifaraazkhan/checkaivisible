@@ -76,21 +76,28 @@ All ambient motion (ticker, pulses, SVG draw) disabled under `prefers-reduced-mo
 
 ---
 
-## 6. Landing Page Structure (v2)
+## 6. Landing Page Structure (v2 — "one continuous instrument")
+
+The page is not stacked marketing sections; it is a single drawn instrument.
+Signature language throughout: **1.5px line-drawn strokes (`pathLength`), traveling
+pulses (`offset-path`), elements that assemble themselves.** Components live in
+`apps/web/components/ledger/`.
 
 | # | Section | Content | Key motion |
 |---|---|---|---|
-| 1 | **Hero** | Serif headline "Who does AI actually recommend?" + sub ("We ask ChatGPT, Gemini & Perplexity every week — and publish what they answer."). Right: a real leaderboard card ("Best CRM, according to AI · updated 2d ago") with 5 rows, platform marks, one row animating up a position. Inline checker input + gold CTA "Check your visibility — free". Ghost secondary "Browse the leaderboards" | Staggered reveal; looping rank-swap in the card every ~4s |
-| 2 | **Ticker** | Thin strip of rank changes: `▲ Notion +2 in "best note apps" · ▼ … · NEW …` | Marquee, pause on hover |
-| 3 | **How it works** | The SVG diagram (query → 3 platforms → ranked list) + three quiet captions (ask 5×, two platforms + sources, refreshed weekly) | Scroll-triggered line draw + traveling pulse |
-| 4 | **Checker hook** | "Your customers are already asking AI. *What is it telling them?*" → big input → score preview | Count-up score, breakdown bars stagger 40ms |
-| 5 | **Leaderboard gallery** | Grid of category cards (CRM, AI coding, Austin restaurants…) each showing its current #1 in gold | Hover lift one surface step |
-| 6 | **Methodology strip** | 3 columns: "Every prompt run 5×" / "Sourced citations" / "Refreshed weekly" + named author signature. Swiss-annual-report energy | Reveal only |
-| 7 | **Badge loop** | The embeddable badge rendered on a mock startup site + copy-snippet | Reveal only |
-| 8 | **Footer CTA** | Repeat checker input. "Free. No account. 30 seconds." | Reveal only |
+| — | **Hero — the engine** | Centered serif headline, then the product demo running live full-width: a query types itself (`> best CRM`), pulses travel into ChatGPT/Gemini/Perplexity nodes, the ranked ledger assembles on the right — then it clears and runs the next category (software → AI tools → Austin tacos). Gold CTA + "read the ledger ↓" | Typing caret, wire line-draw, looping traveling pulses, staggered result assembly (`hero-engine.tsx`) |
+| — | **The tape** | "THIS WEEK" label + stock-tape of rank changes | Marquee, pause on hover (`tape.tsx`) |
+| 01 | **The ledger** | Self-drawing leaderboard: hairlines sweep in, 8-week rank sparklines trace stroke-by-stroke, run-rate meters fill, n/5 appearance rates in mono. Below: the index of open ledgers as ruled contents-page lines | `pathLength` sparklines, `scaleX` hairlines, stagger (`drawn-leaderboard.tsx`, `ledger-index.tsx`) |
+| 02 | **The method** | Methodology as an engineering drawing: one AI answer panel annotated with dimension lines — "sampled 5×" tick marks, mention-detection callout in gold, citation connector, "~20 prompts" vertical dimension, weekly circular arrow | Sequenced annotation line-draws (`method-blueprint.tsx`) |
+| 03 | **The check** | The checker as a terminal session: `$ checkaivisible audit --engines chatgpt,gemini --runs 5` → url input → "run check ↵" | Terminal states, no form furniture (`checker-terminal.tsx`) |
+| — | **Closing** | "The answers are already out there. We just write them down." + gold CTA | Reveal only |
+
+Sections 01–03 are wrapped in `section.tsx`: a numbered spine rail (gold node +
+vertical line that draws itself) connects the entries like a ledger's index.
 
 ### Removed from v1 page
-Pricing section (all 4 tiers), "Surfaces data from" logo marquee (replaced by ticker), aurora/indigo background system, partners-as-sales framing.
+Pricing section (all 4 tiers), logo marquee, aurora/indigo background system,
+partners-as-sales framing, bento feature grid, FAQ, generic card-grid sections.
 
 ### Copy voice
 Declarative, short, zero exclamation marks. Numbers carry the persuasion ("4/5 runs", "updated 2 days ago", "200 categories"). The word **free** appears plainly, not as a badge.

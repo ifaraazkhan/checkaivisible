@@ -12,25 +12,20 @@ export function SiteHeader() {
           checkaivisible
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm md:flex">
-          <Link
-            href={"/#leaderboards" as const}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Leaderboards
-          </Link>
-          <Link
-            href={"/#how-it-works" as const}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            How it works
-          </Link>
-          <Link
-            href={"/#methodology" as const}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Methodology
-          </Link>
+        <nav className="hidden items-center gap-7 font-mono text-xs uppercase tracking-[0.14em] md:flex">
+          {[
+            { n: "01", label: "Ledger", href: "/#ledger" },
+            { n: "02", label: "Method", href: "/#method" },
+            { n: "03", label: "Check", href: "/#check" },
+          ].map((item) => (
+            <Link
+              key={item.n}
+              href={item.href as never}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span className="text-primary">{item.n}</span> {item.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2">
