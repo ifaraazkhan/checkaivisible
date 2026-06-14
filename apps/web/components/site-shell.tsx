@@ -24,7 +24,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link href="/" aria-label="CheckAIVisible — home">
-          <Wordmark className="text-[15px]" />
+          <Wordmark className="text-xl" />
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm md:flex">
@@ -65,7 +65,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
           <div>
-            <Wordmark className="text-sm" />
+            <Wordmark className="text-base" />
             <p className="mt-3 max-w-xs text-xs leading-relaxed text-muted-foreground">
               We ask ChatGPT, Gemini and Perplexity &ldquo;best X&rdquo; every week —
               and publish what they answer. Free, sourced, tracked over time.
