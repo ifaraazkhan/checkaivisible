@@ -1,7 +1,13 @@
 import { getDb, schema, eq, desc } from "@cav/db";
 import { canonicalKey } from "./canonical.js";
 import { refreshCategory } from "./refresh.js";
-import { harvest, probeCandidates, promote, MIN_BRANDS_TO_PROMOTE } from "./category-discovery.js";
+import {
+  harvest,
+  probeCandidates,
+  promote,
+  categoryKey,
+  MIN_BRANDS_TO_PROMOTE,
+} from "./category-discovery.js";
 
 // Phase 2 of category auto-discovery (Planning/category-discovery.md): make the
 // feeder run itself. Cadence is EARNED by volatility — measure churn, slot each
@@ -80,29 +86,40 @@ async function scheduleAfterRun(slug: string, trending: boolean): Promise<{ tier
 }
 
 // ---- auto-promote: probed candidates mint themselves (no human gate) ----
-export async function autoPromote(): Promise<{ promoted: string[]; rejected: string[] }> {
+// `limit` caps how many ledgers we'll mint per run (each is a full refresh = spend).
+export async function autoPromote(limit = 5): Promise<{ promoted: string[]; rejected: string[] }> {
   const db = getDb();
-  const ready = await db
-    .select()
-    .from(schema.categoryCandidates)
-    .where(eq(schema.categoryCandidates.status, "probed"));
+  const [ready, liveCats] = await Promise.all([
+    db
+      .select()
+      .from(schema.categoryCandidates)
+      .where(eq(schema.categoryCandidates.status, "probed"))
+      .orderBy(desc(schema.categoryCandidates.demandScore)),
+    db.select({ slug: schema.categories.slug }).from(schema.categories),
+  ]);
+  const liveKeys = new Set(liveCats.map((c) => categoryKey(c.slug)));
 
   const promoted: string[] = [];
   const rejected: string[] = [];
   for (const c of ready) {
     if ((c.brandsNamed ?? 0) < MIN_BRANDS_TO_PROMOTE) {
       // AI won't name brands → not a real ledger. Reject so we stop re-probing it.
-      await db
-        .update(schema.categoryCandidates)
-        .set({ status: "rejected" })
-        .where(eq(schema.categoryCandidates.slug, c.slug));
+      await rejectCandidate(c.slug);
+      rejected.push(c.slug);
+      continue;
+    }
+    if (liveKeys.has(categoryKey(c.slug))) {
+      // near-duplicate of an existing ledger → reject (don't fragment traffic).
+      await rejectCandidate(c.slug);
       rejected.push(c.slug);
       continue;
     }
     if ((c.demandScore ?? 0) < MIN_DEMAND_TO_PROMOTE) continue; // answerable but low demand — leave probed
+    if (promoted.length >= limit) break; // spend ceiling for this run
     try {
       await promote(c.slug);
       await scheduleAfterRun(c.slug, false); // set next_run so the tick doesn't double-refresh it
+      liveKeys.add(categoryKey(c.slug)); // block a second near-dup in the same run
       promoted.push(c.slug);
     } catch (err) {
       console.error(`[auto-promote] ${c.slug} failed:`, (err as Error).message);
@@ -111,18 +128,49 @@ export async function autoPromote(): Promise<{ promoted: string[]; rejected: str
   return { promoted, rejected };
 }
 
-// ---- scheduler: refresh every ledger whose next_run_at is due (or unset) ----
-export async function runDueCategories(
-  now = new Date(),
-): Promise<{ ran: { slug: string; tier: Tier; businesses: number }[] }> {
+async function rejectCandidate(slug: string): Promise<void> {
   const db = getDb();
-  const cats = await db.select().from(schema.categories);
-  const due = cats.filter((c) => c.nextRunAt == null || c.nextRunAt.getTime() <= now.getTime());
+  await db
+    .update(schema.categoryCandidates)
+    .set({ status: "rejected" })
+    .where(eq(schema.categoryCandidates.slug, slug));
+}
 
+// ---- scheduler: refresh every ledger whose next_run_at is due (or unset) ----
+// Topical/global only by default (kind=software) — the seeded local ledgers aren't
+// auto-managed yet. `limit` caps refreshes per run; due ledgers carry over to the
+// next tick. A refresh that returns engines-ran-but-zero-brands retires the ledger
+// to dormant so we stop burning spend on a category AI no longer answers.
+export async function runDueCategories(
+  opts: { now?: Date; limit?: number; kinds?: string[] } = {},
+): Promise<{ ran: { slug: string; tier: Tier; businesses: number }[]; remaining: number }> {
+  const db = getDb();
+  const now = opts.now ?? new Date();
+  const limit = opts.limit ?? 20;
+  const kinds = opts.kinds ?? ["software"];
+
+  const cats = await db.select().from(schema.categories);
+  const due = cats
+    .filter((c) => kinds.includes(c.kind))
+    .filter((c) => c.nextRunAt == null || c.nextRunAt.getTime() <= now.getTime())
+    .sort((a, b) => (a.nextRunAt?.getTime() ?? 0) - (b.nextRunAt?.getTime() ?? 0));
+
+  const batch = due.slice(0, limit);
   const ran: { slug: string; tier: Tier; businesses: number }[] = [];
-  for (const c of due) {
+  for (const c of batch) {
     try {
       const res = await refreshCategory(c.slug);
+      // engines ran but named nobody → category no longer answerable → retire.
+      if (res.engines.length > 0 && res.businesses === 0) {
+        const next = new Date(now.getTime() + TIER_DAYS.dormant * DAY_MS);
+        await db
+          .update(schema.categories)
+          .set({ tier: "dormant", churnScore: null, lastRunAt: now, nextRunAt: next })
+          .where(eq(schema.categories.slug, c.slug));
+        ran.push({ slug: c.slug, tier: "dormant", businesses: 0 });
+        console.log(`[scheduler] ${c.slug}: named nobody → retired to dormant`);
+        continue;
+      }
       const { tier } = await scheduleAfterRun(c.slug, c.trending);
       ran.push({ slug: c.slug, tier, businesses: res.businesses });
       console.log(`[scheduler] ${c.slug}: refreshed ${res.businesses} businesses → tier ${tier}`);
@@ -130,23 +178,27 @@ export async function runDueCategories(
       console.error(`[scheduler] ${c.slug} failed:`, (err as Error).message);
     }
   }
-  return { ran };
+  return { ran, remaining: Math.max(0, due.length - batch.length) };
 }
 
 // ---- tick: one full autonomous pass (cron this) ----
-export async function tick(opts: { harvest?: boolean; probe?: number } = {}): Promise<void> {
+export async function tick(
+  opts: { harvest?: boolean; probe?: number; maxPromote?: number; maxRefresh?: number } = {},
+): Promise<void> {
   if (opts.harvest) {
     const h = await harvest();
     console.log(`[tick] harvested ${h.saved} new candidates`);
   }
   const p = await probeCandidates(opts.probe ?? 10);
   console.log(`[tick] probed ${p.probed} candidate(s)`);
-  const ap = await autoPromote();
+  const ap = await autoPromote(opts.maxPromote ?? 5);
   console.log(
     `[tick] auto-promoted ${ap.promoted.length} (${ap.promoted.join(", ") || "none"}), rejected ${ap.rejected.length}`,
   );
-  const rd = await runDueCategories();
-  console.log(`[tick] refreshed ${rd.ran.length} due ledger(s)`);
+  const rd = await runDueCategories({ limit: opts.maxRefresh ?? 20 });
+  console.log(
+    `[tick] refreshed ${rd.ran.length} due ledger(s)${rd.remaining ? `, ${rd.remaining} carried to next tick` : ""}`,
+  );
 }
 
 // ---- read-only: the current schedule (for the `schedule` CLI command) ----

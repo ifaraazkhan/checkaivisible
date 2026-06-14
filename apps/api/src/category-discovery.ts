@@ -62,6 +62,24 @@ export function slugify(phrase: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+// Generic "type" nouns engines tack onto a category ("X software", "X tool/app").
+const CATEGORY_TYPE_RE =
+  /\b(software|tool|tools|app|apps|platform|platforms|service|services|solution|solutions|system|systems|suite|program|programs|online)\b/g;
+
+// A near-duplicate key for a category slug/phrase. Collapses the "best/top" prefix
+// and generic type nouns so "best-crm", "best-crm-software" and "best-crm-tools" map
+// to the same key — but keeps real qualifiers ("best-crm-for-real-estate" stays
+// distinct). Heuristic only; true semantic dedup (assistant≈tool) needs embeddings.
+export function categoryKey(slugOrPhrase: string): string {
+  return slugOrPhrase
+    .toLowerCase()
+    .replace(/-/g, " ")
+    .replace(/\b(best|top|the)\b/g, " ")
+    .replace(CATEGORY_TYPE_RE, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function titleCase(phrase: string): string {
   return phrase.replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -159,8 +177,16 @@ async function saveCandidates(cands: HarvestedCandidate[]): Promise<number> {
     db.select({ slug: schema.categories.slug }).from(schema.categories),
     db.select({ slug: schema.categoryCandidates.slug }).from(schema.categoryCandidates),
   ]);
-  const taken = new Set([...liveCats, ...existing].map((r) => r.slug));
-  const fresh = cands.filter((c) => !taken.has(c.slug));
+  const takenSlugs = new Set([...liveCats, ...existing].map((r) => r.slug));
+  const takenKeys = new Set([...liveCats, ...existing].map((r) => categoryKey(r.slug)));
+  const seenKeys = new Set<string>();
+  const fresh = cands.filter((c) => {
+    if (takenSlugs.has(c.slug)) return false;
+    const key = categoryKey(c.slug);
+    if (takenKeys.has(key) || seenKeys.has(key)) return false; // near-dup of an existing/just-seen one
+    seenKeys.add(key);
+    return true;
+  });
   if (!fresh.length) return 0;
   await db.insert(schema.categoryCandidates).values(
     fresh.map((c) => ({

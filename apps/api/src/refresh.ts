@@ -114,7 +114,13 @@ export async function refreshCategory(
   }));
   const ranked = rankLedger(entries);
 
-  // replace this week's snapshot for the category
+  // Replace this week's snapshot — but ONLY if this run produced results. If every
+  // engine was capped or failed (ranked empty), keep the last good snapshot instead
+  // of blanking the ledger. The scheduler re-runs often, so a transient outage must
+  // never wipe live data.
+  if (ranked.length === 0) {
+    return { slug, engines: enginesUsed, businesses: 0 };
+  }
   await db
     .delete(schema.leaderboardSnapshots)
     .where(
@@ -123,20 +129,18 @@ export async function refreshCategory(
         eq(schema.leaderboardSnapshots.weekStart, weekStart),
       ),
     );
-  if (ranked.length > 0) {
-    await db.insert(schema.leaderboardSnapshots).values(
-      ranked.map((r) => ({
-        categorySlug: slug,
-        weekStart,
-        businessName: r.name,
-        runs: r.runs,
-        score: r.score,
-        avgRank: r.avgRank,
-        rank: r.rank,
-        citationsJson: r.citations,
-      })),
-    );
-  }
+  await db.insert(schema.leaderboardSnapshots).values(
+    ranked.map((r) => ({
+      categorySlug: slug,
+      weekStart,
+      businessName: r.name,
+      runs: r.runs,
+      score: r.score,
+      avgRank: r.avgRank,
+      rank: r.rank,
+      citationsJson: r.citations,
+    })),
+  );
 
   return { slug, engines: enginesUsed, businesses: ranked.length };
 }

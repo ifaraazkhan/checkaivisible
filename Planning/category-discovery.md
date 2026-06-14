@@ -179,11 +179,20 @@ Tiered build:
 - **Now (cheap):** search + typeahead over `categories.title + query` via Postgres
   `pg_trgm` (fuzzy ILIKE) — no Algolia/Elastic at this scale. Add a `theme` column
   (Marketing/Sales/Dev tools/Local…), LLM-tagged at promote, for browse-by-group.
-- **Loop:** log no-result queries (new `search_queries` table) → seed candidates.
+- **Loop:** log **every** search query (not just no-result) to a `search_queries`
+  table → no-result ones seed candidates; all of them are first-party analytics.
 - **Later (semantic):** embeddings for synonym/fuzzy match — same embeddings power
   the domain→ledger mapping. One system, two uses.
 
-Schema adds when built: `categories.theme`, a `search_queries` log table.
+**Store every search keyword (decided 2026-06-14).** A `search_queries` table —
+`id, query (text), normalized (categoryKey), result_count (int), matched_slug
+(nullable), user_id (nullable), created_at`. Two payoffs: (1) `result_count = 0`
+rows auto-seed `category_candidates` (source="search") — the demand loop; (2) the
+full log is analytics gold: top searches, zero-result gaps, trend onset (a keyword
+spiking = the trend lane's cheapest proprietary signal). Cheap to write on every
+search; never block the search response on it (fire-and-forget insert).
+
+Schema adds when built: `categories.theme`, the `search_queries` table above.
 
 ## Guardrails
 
