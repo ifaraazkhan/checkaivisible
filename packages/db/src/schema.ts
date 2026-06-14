@@ -273,6 +273,31 @@ export const categories = cav1.table(
   }),
 );
 
+// Discovered category candidates — the auto-discovery FEEDER for `categories`.
+// Harvested (Google autocomplete / ask-AI / listicles), demand-scored, then
+// validated by a cheap probe (does AI actually name brands?) before a human/auto
+// promote inserts the survivor into `categories`. Staging table: created via direct
+// SQL (DB is push-built; do NOT drizzle generate/migrate). See Planning/category-discovery.md.
+export const categoryCandidates = cav1.table(
+  "category_candidates",
+  {
+    slug: text("slug").primaryKey(),
+    title: text("title").notNull(),
+    query: text("query").notNull(),
+    source: text("source").notNull(), // autocomplete | ai-suggest | listicle | reddit | manual
+    demandScore: real("demand_score"),
+    brandsNamed: integer("brands_named"), // distinct brands from the validation probe
+    status: text("status").notNull().default("pending"), // pending | probed | promoted | rejected
+    probeJson: jsonb("probe_json"), // the probe result (engine + names seen)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    probedAt: timestamp("probed_at", { withTimezone: true }),
+    promotedAt: timestamp("promoted_at", { withTimezone: true }),
+  },
+  (t) => ({
+    statusIdx: index("category_candidates_status_idx").on(t.status),
+  }),
+);
+
 // Weekly leaderboard snapshot. One row per business per category per week.
 // runs = { chatgpt, gemini, perplexity } appearance counts (0–5 each).
 export const leaderboardSnapshots = cav1.table(

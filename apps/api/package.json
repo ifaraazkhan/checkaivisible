@@ -11,6 +11,8 @@
     "smoke": "tsx src/scripts/smoke-engines.ts",
     "sample": "tsx src/scripts/sample-runs.ts",
     "refresh": "tsx src/scripts/refresh-category.ts",
+    "discover": "tsx src/scripts/discover.ts",
+    "migrate:candidates": "tsx src/scripts/migrate-candidates.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
