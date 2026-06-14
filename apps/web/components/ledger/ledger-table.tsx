@@ -13,7 +13,13 @@ import type { RankedEntry } from "@/lib/ledger-data";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export function LedgerTable({ entries }: { entries: RankedEntry[] }) {
+export function LedgerTable({
+  entries,
+  onSelectBusiness,
+}: {
+  entries: RankedEntry[];
+  onSelectBusiness?: (name: string) => void;
+}) {
   const reduce = useReducedMotion();
 
   return (
@@ -39,14 +45,22 @@ export function LedgerTable({ entries }: { entries: RankedEntry[] }) {
         variants={{ visible: { transition: { staggerChildren: reduce ? 0 : 0.06 } } }}
       >
         {entries.map((entry) => (
-          <Row key={entry.name} entry={entry} reduce={!!reduce} />
+          <Row key={entry.name} entry={entry} reduce={!!reduce} onSelect={onSelectBusiness} />
         ))}
       </motion.ol>
     </div>
   );
 }
 
-function Row({ entry, reduce }: { entry: RankedEntry; reduce: boolean }) {
+function Row({
+  entry,
+  reduce,
+  onSelect,
+}: {
+  entry: RankedEntry;
+  reduce: boolean;
+  onSelect?: (name: string) => void;
+}) {
   const first = entry.rank === 1;
 
   return (
@@ -74,9 +88,19 @@ function Row({ entry, reduce }: { entry: RankedEntry; reduce: boolean }) {
 
       <span className="min-w-0">
         <span className="block truncate text-[15px] font-medium tracking-tight">
-          {entry.name}
+          {onSelect ? (
+            <button
+              type="button"
+              onClick={() => onSelect(entry.name)}
+              className="cursor-pointer underline-offset-4 hover:text-primary hover:underline"
+            >
+              {entry.name}
+            </button>
+          ) : (
+            entry.name
+          )}
           {entry.isNew && (
-            <span className="ml-2 rounded border border-primary/30 px-1 py-px font-mono text-[9px] uppercase tracking-wider text-primary">
+            <span className="ml-2 rounded border border-primary/30 px-1 py-px font-mono text-[10px] uppercase tracking-wider text-primary">
               new
             </span>
           )}

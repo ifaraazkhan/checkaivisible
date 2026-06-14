@@ -17,7 +17,7 @@ export default function HomePage() {
     <main className="overflow-hidden">
       <StatsBar />
       <Hero />
-      <section className="mx-auto max-w-[1440px] px-6">
+      <section className="mx-auto max-w-6xl px-6">
         <HomeLedger />
       </section>
       <div className="mt-14">
@@ -42,7 +42,7 @@ const GLOBAL_STATS: { label: string; value: string; gold?: boolean }[] = [
 function StatsBar() {
   return (
     <div className="border-b border-border bg-card/40">
-      <div className="mx-auto flex max-w-7xl items-center gap-x-6 gap-y-1 overflow-x-auto px-6 py-2 font-mono text-[11px] [scrollbar-width:none]">
+      <div className="mx-auto flex max-w-6xl items-center gap-x-6 gap-y-1 overflow-x-auto px-6 py-2 font-mono text-[11px] [scrollbar-width:none]">
         {GLOBAL_STATS.map((s) => (
           <span key={s.label} className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap">
             <span className="text-muted-foreground">{s.label}:</span>
@@ -70,16 +70,16 @@ function Hero() {
           </p>
         </div>
         <div className="reveal reveal-3 flex shrink-0 items-center gap-5 pb-1">
-          <Button asChild className="h-11 rounded-lg px-6">
+          <Button asChild className="h-12 rounded-lg px-6">
             <Link href={"/#check" as const}>
               Check your visibility <ArrowRight />
             </Link>
           </Button>
           <Link
             href={"/leaderboards" as const}
-            className="font-mono text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
           >
-            all ledgers →
+            all ledgers <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>
@@ -94,7 +94,7 @@ function Method() {
       <h2 className="font-display max-w-2xl text-balance text-4xl sm:text-5xl">
         One question. Three engines. <em className="text-primary">One ledger.</em>
       </h2>
-      <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+      <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
         Watch a row get written — then how each answer is dissected.
       </p>
 
@@ -133,9 +133,9 @@ function Check() {
         <h2 className="font-display max-w-2xl text-balance text-4xl sm:text-5xl">
           Not on a ledger? <em className="text-primary">Find out why.</em>
         </h2>
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          Your customers are already asking AI. Run the free check — your score, who AI names
-          instead, and the fixes.
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+          Run the free scan — see how ready your site is to be read and cited by ChatGPT, Gemini
+          and Perplexity, and exactly what&apos;s holding it back.
         </p>
         <div className="mt-10 max-w-2xl">
           <CheckerTerminal />
@@ -160,12 +160,18 @@ function Closing() {
           <br />
           <em className="text-primary">We just write them down.</em>
         </h2>
-        <div className="mt-10">
-          <Button asChild size="lg" className="h-13 rounded-xl px-8 text-base">
-            <Link href={"/leaderboards" as const}>
-              Read the ledgers <ArrowRight />
+        <div className="mt-10 flex flex-col items-center gap-4">
+          <Button asChild size="lg" className="rounded-lg px-8">
+            <Link href={"/#check" as const}>
+              Check your visibility <ArrowRight />
             </Link>
           </Button>
+          <Link
+            href={"/leaderboards" as const}
+            className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+          >
+            or browse all ledgers <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
       </div>
     </section>
