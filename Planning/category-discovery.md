@@ -161,6 +161,30 @@ mint thin/spam pages.
   the optimizer. Fold Trends slope into demand_score; periodic re-validation
   retires categories that stop naming brands (→ dormant).
 
+## User-side discovery (search) — to build alongside Phase 2
+
+Auto-discovery scales 8 ledgers → hundreds, so "scroll the list" breaks. Two
+discovery problems, **one engine** (match free text/intent → a category):
+
+1. **Consumer browse** — search box + typeahead + browse-by-theme on /leaderboards.
+2. **Owner mapping** — domain → best-matching category (the promised "projected
+   standing + semantically-matched ledger" on the audit). Search from the other side.
+
+**Key loop: on-site search is our best first-party demand signal.** A search that
+returns no ledger = a user asking us to mint that category → auto-create a `pending`
+candidate (`source="search"`, high demand weight) → flows into `probe`. Search
+becomes the #1 harvester and self-heals the catalog toward real demand.
+
+Tiered build:
+- **Now (cheap):** search + typeahead over `categories.title + query` via Postgres
+  `pg_trgm` (fuzzy ILIKE) — no Algolia/Elastic at this scale. Add a `theme` column
+  (Marketing/Sales/Dev tools/Local…), LLM-tagged at promote, for browse-by-group.
+- **Loop:** log no-result queries (new `search_queries` table) → seed candidates.
+- **Later (semantic):** embeddings for synonym/fuzzy match — same embeddings power
+  the domain→ledger mapping. One system, two uses.
+
+Schema adds when built: `categories.theme`, a `search_queries` log table.
+
 ## Guardrails
 
 - **Never mint a vanity category for a customer** (placement integrity — PRODUCT.md).
