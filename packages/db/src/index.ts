@@ -7,7 +7,7 @@ export { schema };
 
 // Re-export drizzle helpers so consumers don't resolve drizzle-orm separately
 // (avoids pnpm peer-dep duplication when consumers also pull in `pg`).
-export { and, eq, gt, gte, lt, lte, desc, asc, sql, inArray, or, not } from "drizzle-orm";
+export { and, eq, gt, gte, lt, lte, desc, asc, sql, inArray, or, not, isNull } from "drizzle-orm";
 
 let _client: ReturnType<typeof postgres> | null = null;
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;

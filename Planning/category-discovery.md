@@ -121,6 +121,16 @@ category; a scheduler picks up whatever is due.
 
 ## The trend lane (newsjacking) — catch the spike before competitors rank
 
+Status: **BUILT (2026-06-15)** — `apps/api/src/trend.ts` + `cav1.trend_signals`
+(`migrate:trends`). Detector = proprietary on-site search-spike (no network/LLM) +
+manual newsjack injection; classify (brand|category|noise) + entity-resolve via one
+cheap LLM call; fast-track answerability probe (reuses `probeQuery`) gates minting;
+mints Tier-S "Hot" ledger or attaches to existing category; `decayTrending` cools
+the flag. CLI: `discover trend [terms…] | trend-detect | trend-list | trend-decay`,
+plus `tick --trend`. `Hot` badge on /leaderboards + ledger header. External
+detectors (Trends/Reddit/HN/news) are pluggable but not wired — search-spike is the
+shipped signal. Detail below.
+
 A fast, separate path so an emerging topic (e.g. a new AI agent making news) hits a
 ledger within hours, not on the weekly cycle. Doubles as linkbait/distribution
 ("which AI agent does ChatGPT recommend this week?"), not just freshness.
@@ -155,7 +165,7 @@ mint thin/spam pages.
   optimizer**: after 2–3 runs compute `churn_score` + pull `traffic_30d`,
   re-slab each category, set `next_run_at`. A cron/worker job runs whatever is
   due — this replaces "refresh everything weekly".
-- **Phase 3 (trend lane + freshness):** the **newsjacking pipeline** — detectors
+- **Phase 3 (trend lane + freshness): ✅ BUILT (2026-06-15).** the **newsjacking pipeline** — detectors
   (Trends breakout, Reddit/HN velocity, own-traffic spikes) → LLM classify +
   entity-resolve → fast-track probe → mint Tier S with a Hot badge, decaying via
   the optimizer. Fold Trends slope into demand_score; periodic re-validation
@@ -163,15 +173,17 @@ mint thin/spam pages.
 
 ## User-side discovery (search) — BUILT (consumer search + demand loop)
 
-Status: consumer search + query logging + miss→candidate loop shipped. Still open:
-browse-by-theme UI (column exists, not yet LLM-tagged) and the domain→ledger
-semantic match (needs embeddings). Details below.
+Status: consumer search + query logging + miss→candidate loop shipped.
+Browse-by-theme also shipped (2026-06-15): fixed theme taxonomy tagged at promote
+(`theme.ts`, free heuristic → LLM tiebreak), `/leaderboards` groups software by
+theme. Backfill: `pnpm --filter @cav/api tag:themes [--llm]`. Still open: the
+domain→ledger semantic match (needs embeddings). Details below.
 
 
 Auto-discovery scales 8 ledgers → hundreds, so "scroll the list" breaks. Two
 discovery problems, **one engine** (match free text/intent → a category):
 
-1. **Consumer browse** — search box + typeahead + browse-by-theme on /leaderboards.
+1. **Consumer browse** — search box + typeahead + browse-by-theme on /leaderboards. ✅
 2. **Owner mapping** — domain → best-matching category (the promised "projected
    standing + semantically-matched ledger" on the audit). Search from the other side.
 

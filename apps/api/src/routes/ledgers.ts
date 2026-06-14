@@ -66,6 +66,8 @@ function serialize(data: NonNullable<Awaited<ReturnType<typeof rankedFor>>>) {
     query: data.category.query,
     kind: data.category.kind,
     city: data.category.city,
+    theme: data.category.theme,
+    trending: data.category.trending,
     weekStart: data.weekStart,
     entries: data.entries,
   };
@@ -84,6 +86,8 @@ ledgers.get("/", async (c) => {
       kind: cat.kind,
       city: cat.city,
       query: cat.query,
+      theme: cat.theme,
+      trending: cat.trending,
       top: data?.entries[0]?.name ?? null,
     });
   }

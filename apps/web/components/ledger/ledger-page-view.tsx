@@ -35,7 +35,13 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
         {/* one-line header — the table is the page */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-10 gap-y-2">
           <h1 className="font-display text-balance text-3xl sm:text-4xl">
-            {ledger.title} <span className="text-muted-foreground">— according to AI</span>
+            {ledger.title}
+            {ledger.trending && (
+              <span className="ml-2.5 rounded-sm bg-primary/15 px-2 py-1 align-middle font-mono text-[11px] font-semibold uppercase tracking-wider text-primary">
+                Hot
+              </span>
+            )}{" "}
+            <span className="text-muted-foreground">— according to AI</span>
           </h1>
           <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
             updated {LEDGER_UPDATED_AT} · next run <span className="text-primary">{NEXT_REFRESH}</span>

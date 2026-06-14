@@ -329,6 +329,33 @@ export const searchQueries = cav1.table(
   }),
 );
 
+// Trend lane / newsjacking detection log (Phase 3, Planning/category-discovery.md).
+// Each spike a detector surfaces lands here once, gets LLM-classified
+// (brand | category | noise) + entity-resolved, then acted on (mint a Tier-S "Hot"
+// ledger, or attach a trending brand to its existing category). Created via direct
+// SQL (DB is push-built; do NOT drizzle generate/migrate). See migrate-trends.ts.
+export const trendSignals = cav1.table(
+  "trend_signals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    term: text("term").notNull(), // the trending phrase/brand as detected
+    normalized: text("normalized").notNull(), // categoryKey(term) — dedupes variants
+    source: text("source").notNull(), // search-spike | hackernews | reddit | news | manual
+    score: real("score"), // velocity / heat (higher = hotter)
+    status: text("status").notNull().default("detected"), // detected | classified | acted | noise | error
+    kind: text("kind"), // brand | category | noise (from classify)
+    resolvedSlug: text("resolved_slug"), // category it minted into / attached to
+    detail: jsonb("detail"), // classify output + raw counts
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    actedAt: timestamp("acted_at", { withTimezone: true }),
+  },
+  (t) => ({
+    normIdx: index("trend_signals_norm_idx").on(t.normalized),
+    statusIdx: index("trend_signals_status_idx").on(t.status),
+    createdIdx: index("trend_signals_created_idx").on(t.createdAt),
+  }),
+);
+
 // Weekly leaderboard snapshot. One row per business per category per week.
 // runs = { chatgpt, gemini, perplexity } appearance counts (0–5 each).
 export const leaderboardSnapshots = cav1.table(

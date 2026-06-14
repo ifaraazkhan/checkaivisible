@@ -45,11 +45,32 @@ export default async function LeaderboardsPage() {
           <LedgerSearch />
         </div>
 
-        <Group title={`Software — ${software.length} open`} ledgers={software} />
+        {groupByTheme(software).map(({ theme, items }) => (
+          <Group key={theme} title={`${theme} — ${items.length}`} ledgers={items} />
+        ))}
         <Group title={`Local — ${local.length} open`} ledgers={local} />
       </div>
     </main>
   );
+}
+
+const UNTHEMED = "Other";
+
+// Group software ledgers into browse-by-theme sections. Themes with the most
+// ledgers come first; "Other" (untagged) always sinks to the bottom.
+function groupByTheme(ledgers: LedgerIndexItem[]): { theme: string; items: LedgerIndexItem[] }[] {
+  const groups = new Map<string, LedgerIndexItem[]>();
+  for (const l of ledgers) {
+    const theme = l.theme?.trim() || UNTHEMED;
+    (groups.get(theme) ?? groups.set(theme, []).get(theme)!).push(l);
+  }
+  return [...groups.entries()]
+    .map(([theme, items]) => ({ theme, items }))
+    .sort((a, b) => {
+      if (a.theme === UNTHEMED) return 1;
+      if (b.theme === UNTHEMED) return -1;
+      return b.items.length - a.items.length || a.theme.localeCompare(b.theme);
+    });
 }
 
 function Group({ title, ledgers }: { title: string; ledgers: LedgerIndexItem[] }) {
@@ -66,6 +87,11 @@ function Group({ title, ledgers }: { title: string; ledgers: LedgerIndexItem[] }
             >
               <span className="text-[15px] font-medium tracking-tight">
                 {ledger.title}
+                {ledger.trending && (
+                  <span className="ml-2 rounded-sm bg-primary/15 px-1.5 py-0.5 align-middle font-mono text-[9px] font-semibold uppercase tracking-wider text-primary">
+                    Hot
+                  </span>
+                )}
                 {ledger.kind === "local" && ledger.city && (
                   <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                     {ledger.city}

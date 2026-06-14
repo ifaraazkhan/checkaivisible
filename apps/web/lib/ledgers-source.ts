@@ -27,6 +27,7 @@ type ApiLedger = {
   query: string;
   kind: "software" | "local";
   city: string | null;
+  trending: boolean;
   weekStart: string | null;
   entries: ApiEntry[];
 };
@@ -37,6 +38,8 @@ export type LedgerIndexItem = {
   kind: "software" | "local";
   city: string | null;
   query: string;
+  theme: string | null;
+  trending: boolean;
   top: string | null;
 };
 
@@ -77,6 +80,7 @@ export async function fetchLedger(
       query: d.query,
       kind: d.kind,
       city: d.city ?? undefined,
+      trending: d.trending ?? false,
       entries: [],
     };
     return { ledger, entries: d.entries.map(toRanked) };

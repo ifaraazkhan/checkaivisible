@@ -8,6 +8,7 @@ import {
   categoryKey,
   MIN_BRANDS_TO_PROMOTE,
 } from "./category-discovery.js";
+import { runTrendLane, decayTrending } from "./trend.js";
 
 // Phase 2 of category auto-discovery (Planning/category-discovery.md): make the
 // feeder run itself. Cadence is EARNED by volatility — measure churn, slot each
@@ -183,12 +184,23 @@ export async function runDueCategories(
 
 // ---- tick: one full autonomous pass (cron this) ----
 export async function tick(
-  opts: { harvest?: boolean; probe?: number; maxPromote?: number; maxRefresh?: number } = {},
+  opts: { harvest?: boolean; probe?: number; maxPromote?: number; maxRefresh?: number; trend?: boolean } = {},
 ): Promise<void> {
   if (opts.harvest) {
     const h = await harvest();
     console.log(`[tick] harvested ${h.saved} new candidates`);
   }
+  // Trend lane runs first so a hot topic gets a ledger before the slow feeder spends.
+  if (opts.trend) {
+    const t = await runTrendLane();
+    console.log(
+      `[tick] trend: ${t.detected} detected, minted ${t.minted.length} (${t.minted.join(", ") || "none"}), attached ${t.attached.length}, noise ${t.noise}`,
+    );
+  }
+  // Cooling off the trending flag is free — always do it.
+  const dec = await decayTrending();
+  if (dec.cooled.length) console.log(`[tick] cooled ${dec.cooled.length} stale trending ledger(s)`);
+
   const p = await probeCandidates(opts.probe ?? 10);
   console.log(`[tick] probed ${p.probed} candidate(s)`);
   const ap = await autoPromote(opts.maxPromote ?? 5);

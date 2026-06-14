@@ -19,6 +19,7 @@ export type Ledger = {
   query: string;
   kind: "software" | "local";
   city?: string;
+  trending?: boolean; // newsjacked → Hot badge (Phase 3 trend lane)
   entries: LedgerEntry[];
 };
 

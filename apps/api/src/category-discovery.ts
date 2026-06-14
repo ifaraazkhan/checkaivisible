@@ -1,13 +1,11 @@
 import { getDb, schema, eq, desc } from "@cav/db";
 import type { Platform } from "./types.js";
-import type { EngineFn } from "./sample.js";
-import { queryChatGPT } from "./llm/openai.js";
-import { queryGemini } from "./llm/gemini.js";
-import { queryPerplexity } from "./llm/perplexity.js";
 import { SYSTEM_PROMPT } from "./llm/prompts.js";
+import { firstAvailableEngine } from "./llm/engines.js";
 import { canonicalKey } from "./canonical.js";
 import { refreshCategory } from "./refresh.js";
 import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { classifyTheme } from "./theme.js";
 
 // Phase 1 of category auto-discovery (Planning/category-discovery.md): a FEEDER for
 // the `categories` table. harvest() proposes "best X" candidates (free), probe()
@@ -15,16 +13,6 @@ import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
 // into a live ledger. Topical/global only for now (kind = "software").
 
 export const MIN_BRANDS_TO_PROMOTE = 5;
-
-const ENGINES: { platform: Platform; env: string; fn: EngineFn }[] = [
-  { platform: "chatgpt", env: "OPENAI_API_KEY", fn: queryChatGPT },
-  { platform: "gemini", env: "GEMINI_API_KEY", fn: queryGemini },
-  { platform: "perplexity", env: "PERPLEXITY_API_KEY", fn: queryPerplexity },
-];
-
-function firstAvailableEngine() {
-  return ENGINES.find((e) => process.env[e.env]) ?? null;
-}
 
 export type HarvestedCandidate = {
   slug: string;
@@ -80,11 +68,11 @@ export function categoryKey(slugOrPhrase: string): string {
     .trim();
 }
 
-function titleCase(phrase: string): string {
+export function titleCase(phrase: string): string {
   return phrase.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function toQuery(phrase: string): string {
+export function toQuery(phrase: string): string {
   return `What is the ${phrase}?`;
 }
 
@@ -227,7 +215,35 @@ export async function seedFromSearch(query: string): Promise<void> {
   ]);
 }
 
-// ---- probe: validate top-N pending candidates (1 cheap run each) ----
+// ---- probe: the answerability gate. One cheap run: does AI name brands? ----
+
+export type ProbeResult = { engine: Platform; brands: number; names: string[] };
+
+// Run a single answerability probe for one query and count distinct canonical
+// brands. The hard gate for both the discovery feeder and the trend fast-lane.
+// Returns null when there's no engine key or the daily spend cap is reached.
+export async function probeQuery(query: string): Promise<ProbeResult | null> {
+  const engine = firstAvailableEngine();
+  if (!engine) return null;
+  if (!(await canSpend(engine.platform))) return null;
+
+  let res;
+  try {
+    res = await engine.fn(query, SYSTEM_PROMPT);
+  } catch (err) {
+    console.error(`[probe] query failed:`, (err as Error).message);
+    return null;
+  }
+  const apiKeyId = await getInternalApiKeyId();
+  await recordSpend(apiKeyId, engine.platform, res.latencyMs ?? 0, 200).catch(() => {});
+
+  const brands = new Set<string>();
+  for (const m of res.mentions) {
+    const key = canonicalKey(m.name);
+    if (key) brands.add(key);
+  }
+  return { engine: engine.platform, brands: brands.size, names: res.mentions.map((m) => m.name).slice(0, 12) };
+}
 
 export async function probeCandidates(limit = 10): Promise<{ probed: number }> {
   const db = getDb();
@@ -247,35 +263,21 @@ export async function probeCandidates(limit = 10): Promise<{ probed: number }> {
       console.warn("[probe] daily spend cap reached — stopping");
       break;
     }
-    let res;
-    try {
-      res = await engine.fn(cand.query, SYSTEM_PROMPT);
-    } catch (err) {
-      console.error(`[probe] ${cand.slug} failed:`, (err as Error).message);
-      continue;
-    }
-    const apiKeyId = await getInternalApiKeyId();
-    await recordSpend(apiKeyId, engine.platform, res.latencyMs ?? 0, 200).catch(() => {});
-
-    const brands = new Set<string>();
-    for (const m of res.mentions) {
-      const key = canonicalKey(m.name);
-      if (key) brands.add(key);
-    }
-    const names = res.mentions.map((m) => m.name).slice(0, 12);
+    const r = await probeQuery(cand.query);
+    if (!r) continue; // engine error / cap — try the next one
 
     await db
       .update(schema.categoryCandidates)
       .set({
-        brandsNamed: brands.size,
-        probeJson: { engine: engine.platform, names },
+        brandsNamed: r.brands,
+        probeJson: { engine: r.engine, names: r.names },
         status: "probed",
         probedAt: new Date(),
       })
       .where(eq(schema.categoryCandidates.slug, cand.slug));
 
     probed++;
-    console.log(`[probe] ${cand.slug}: ${brands.size} brands${names.length ? ` — ${names.slice(0, 5).join(", ")}` : ""}`);
+    console.log(`[probe] ${cand.slug}: ${r.brands} brands${r.names.length ? ` — ${r.names.slice(0, 5).join(", ")}` : ""}`);
   }
   return { probed };
 }
@@ -299,12 +301,15 @@ export async function promote(slug: string): Promise<{ slug: string; businesses:
     );
   }
 
+  // Tag a browse-by-group theme (free heuristic first, LLM only as a tiebreak).
+  const theme = await classifyTheme(cand.title, cand.query, cand.slug);
+
   await db
     .insert(schema.categories)
-    .values({ slug: cand.slug, title: cand.title, query: cand.query, kind: "software" })
+    .values({ slug: cand.slug, title: cand.title, query: cand.query, kind: "software", theme })
     .onConflictDoUpdate({
       target: schema.categories.slug,
-      set: { title: cand.title, query: cand.query },
+      set: { title: cand.title, query: cand.query, theme },
     });
 
   // Real first snapshot (5 runs × engines). Phase 2 will reuse the probe to save spend.

@@ -9,10 +9,12 @@ import {
   MIN_BRANDS_TO_PROMOTE,
 } from "../category-discovery.js";
 import { autoPromote, runDueCategories, tick, getSchedule } from "../discovery-scheduler.js";
+import { detectSearchSpikes, recordSignals, runTrendLane, decayTrending, listSignals } from "../trend.js";
 
 // Category-discovery CLI (Planning/category-discovery.md).
 // Phase 1 (manual):  harvest [seeds...] | probe [n] | list | promote <slug>
-// Phase 2 (auto):    auto-promote | run-due | schedule | tick [--harvest] [n]
+// Phase 2 (auto):    auto-promote | run-due | schedule | tick [--harvest] [--trend] [n]
+// Phase 3 (trends):  trend [manual term…] | trend-detect | trend-list | trend-decay [days]
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -86,13 +88,54 @@ async function main() {
     }
     case "tick": {
       const doHarvest = rest.includes("--harvest");
+      const doTrend = rest.includes("--trend");
       const nArg = rest.find((a) => /^\d+$/.test(a));
-      await tick({ harvest: doHarvest, probe: nArg ? parseInt(nArg, 10) : undefined });
+      await tick({ harvest: doHarvest, trend: doTrend, probe: nArg ? parseInt(nArg, 10) : undefined });
+      break;
+    }
+    case "trend": {
+      // Any non-flag args are hand-injected ("newsjacked") terms.
+      const manual = rest.filter((a) => !a.startsWith("-"));
+      const r = await runTrendLane(manual.length ? { manual } : {});
+      console.log(
+        `Trend lane: ${r.detected} detected, ${r.classified} classified → minted ${r.minted.length} (${r.minted.join(", ") || "none"}), attached ${r.attached.length} (${r.attached.join(", ") || "none"}), noise ${r.noise}.`,
+      );
+      break;
+    }
+    case "trend-detect": {
+      // Dry-ish: detect spikes + log signals, but NO classify/mint (no LLM spend).
+      const signals = await detectSearchSpikes();
+      const saved = await recordSignals(signals);
+      if (!signals.length) {
+        console.log("No search spikes detected.");
+        break;
+      }
+      for (const s of signals) console.log(`  velocity=${s.score.toFixed(2).padStart(6)}  ${s.term}  [${s.normalized}]`);
+      console.log(`\n${signals.length} spike(s), ${saved.length} new signal(s) logged. Next: discover trend`);
+      break;
+    }
+    case "trend-list": {
+      const rows = await listSignals();
+      if (!rows.length) {
+        console.log("No trend signals yet. Run: discover trend-detect");
+        break;
+      }
+      for (const s of rows) {
+        const score = s.score == null ? "  -  " : s.score.toFixed(2);
+        const resolved = s.resolvedSlug ? ` → ${s.resolvedSlug}` : "";
+        console.log(`${s.status.padEnd(10)} ${(s.kind ?? "-").padEnd(8)} score=${score}  ${s.term}${resolved}`);
+      }
+      break;
+    }
+    case "trend-decay": {
+      const days = rest[0] ? parseInt(rest[0], 10) : 14;
+      const r = await decayTrending(days);
+      console.log(`Cooled ${r.cooled.length} stale trending ledger(s)${r.cooled.length ? `: ${r.cooled.join(", ")}` : ""}.`);
       break;
     }
     default:
       console.log(
-        "usage: discover <harvest [seeds...] | probe [n] | list | promote <slug> | auto-promote | run-due | schedule | tick [--harvest] [n]>",
+        "usage: discover <harvest [seeds...] | probe [n] | list | promote <slug> | auto-promote | run-due | schedule | tick [--harvest] [--trend] [n] | trend [terms…] | trend-detect | trend-list | trend-decay [days]>",
       );
   }
   await closeDb();
