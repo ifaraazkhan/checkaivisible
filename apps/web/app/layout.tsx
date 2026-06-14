@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Archivo, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter, SiteHeader } from "@/components/site-shell";
 
@@ -13,6 +13,15 @@ const inter = Inter({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+// Display face for headings (.font-display) — paired against Inter body + Geist
+// Mono data. Revert: drop this import + its variable below, and point
+// --font-display back to var(--font-sans) in globals.css.
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
   display: "swap",
 });
@@ -42,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`dark ${inter.variable} ${geistMono.variable}`}
+      className={`dark ${inter.variable} ${geistMono.variable} ${archivo.variable}`}
     >
       <body className="flex min-h-screen flex-col antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />

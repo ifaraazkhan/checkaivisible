@@ -90,6 +90,8 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Headings only. Revert to Inter: set this to `var(--font-sans)`. */
+  --font-display: var(--font-archivo), var(--font-sans);
 }
 
 @layer base {
@@ -119,9 +121,9 @@
 
 /* ---- Display headings: same sans, heavier + tighter ---- */
 .font-display {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .font-display em {
   font-style: normal;
