@@ -13,6 +13,7 @@
     "refresh": "tsx src/scripts/refresh-category.ts",
     "discover": "tsx src/scripts/discover.ts",
     "migrate:candidates": "tsx src/scripts/migrate-candidates.ts",
+    "migrate:tiers": "tsx src/scripts/migrate-tiers.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

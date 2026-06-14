@@ -266,10 +266,19 @@ export const categories = cav1.table(
     query: text("query").notNull(),
     kind: ledgerKind("kind").notNull().default("software"),
     city: text("city"),
+    // --- tiering / scheduler (Phase 2, Planning/category-discovery.md) ---
+    // Cadence is EARNED by volatility: refresh churn × traffic decides the slab.
+    tier: text("tier").notNull().default("A"), // S | A | B | C | dormant
+    churnScore: real("churn_score"), // 0–1 set-diff of named brands vs previous snapshot
+    traffic30d: integer("traffic_30d"), // pageviews, when analytics is wired
+    trending: boolean("trending").notNull().default(false), // newsjacked → Tier S + badge
+    lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+    nextRunAt: timestamp("next_run_at", { withTimezone: true }), // scheduler picks up what's due
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => ({
     kindIdx: index("categories_kind_idx").on(t.kind),
+    dueIdx: index("categories_next_run_idx").on(t.nextRunAt),
   }),
 );
 

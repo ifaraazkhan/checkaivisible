@@ -8,12 +8,11 @@ import {
   DEFAULT_SEEDS,
   MIN_BRANDS_TO_PROMOTE,
 } from "../category-discovery.js";
+import { autoPromote, runDueCategories, tick, getSchedule } from "../discovery-scheduler.js";
 
-// Phase 1 category-discovery CLI (Planning/category-discovery.md).
-//   pnpm --filter @cav/api discover harvest [seed phrases...]
-//   pnpm --filter @cav/api discover probe [n]
-//   pnpm --filter @cav/api discover list
-//   pnpm --filter @cav/api discover promote <slug>
+// Category-discovery CLI (Planning/category-discovery.md).
+// Phase 1 (manual):  harvest [seeds...] | probe [n] | list | promote <slug>
+// Phase 2 (auto):    auto-promote | run-due | schedule | tick [--harvest] [n]
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -57,8 +56,44 @@ async function main() {
       console.log(`\n${rows.length} candidate(s). Promote ready ones: discover promote <slug>`);
       break;
     }
+    case "auto-promote": {
+      const r = await autoPromote();
+      console.log(
+        `Auto-promoted ${r.promoted.length} (${r.promoted.join(", ") || "none"}), rejected ${r.rejected.length}.`,
+      );
+      break;
+    }
+    case "run-due": {
+      const r = await runDueCategories();
+      console.log(`Refreshed ${r.ran.length} due ledger(s).`);
+      break;
+    }
+    case "schedule": {
+      const rows = await getSchedule();
+      if (!rows.length) {
+        console.log("No live ledgers yet.");
+        break;
+      }
+      const fmt = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : "   never  ");
+      for (const c of rows) {
+        const churn = c.churnScore == null ? "  -  " : c.churnScore.toFixed(2);
+        const due = !c.nextRunAt || c.nextRunAt.getTime() <= Date.now() ? " ← due" : "";
+        console.log(
+          `tier ${c.tier.padEnd(7)} churn=${churn}  next=${fmt(c.nextRunAt)}  last=${fmt(c.lastRunAt)}  ${c.slug}${due}`,
+        );
+      }
+      break;
+    }
+    case "tick": {
+      const doHarvest = rest.includes("--harvest");
+      const nArg = rest.find((a) => /^\d+$/.test(a));
+      await tick({ harvest: doHarvest, probe: nArg ? parseInt(nArg, 10) : undefined });
+      break;
+    }
     default:
-      console.log("usage: discover <harvest [seeds...] | probe [n] | list | promote <slug>>");
+      console.log(
+        "usage: discover <harvest [seeds...] | probe [n] | list | promote <slug> | auto-promote | run-due | schedule | tick [--harvest] [n]>",
+      );
   }
   await closeDb();
 }
