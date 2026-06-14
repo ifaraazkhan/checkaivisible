@@ -11,6 +11,8 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL,
   },
+  // All objects live in the `cav1` schema — introspect it so push diffs correctly.
+  schemaFilter: ["cav1"],
   strict: true,
   verbose: true,
 });

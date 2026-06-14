@@ -261,7 +261,7 @@ function DoneView({
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Top {Math.min(breakdown.topCompetitors.length, 10)} businesses ChatGPT and Gemini named most often.
+            Top {Math.min(breakdown.topCompetitors.length, 10)} businesses ChatGPT, Gemini and Perplexity named most often.
           </p>
           <Card className="mt-4">
             <CardContent className="p-0">

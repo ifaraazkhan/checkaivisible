@@ -6,6 +6,8 @@ import { logger } from "hono/logger";
 import { health } from "./routes/health.js";
 import { audit } from "./routes/audit.js";
 import { leaderboard } from "./routes/leaderboard.js";
+import { ledgers } from "./routes/ledgers.js";
+import { check } from "./routes/check.js";
 import { email } from "./routes/email.js";
 import { startWorker } from "./worker.js";
 
@@ -23,6 +25,8 @@ app.use(
 app.route("/health", health);
 app.route("/audit", audit);
 app.route("/leaderboard", leaderboard);
+app.route("/ledgers", ledgers);
+app.route("/check", check);
 app.route("/email", email);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));

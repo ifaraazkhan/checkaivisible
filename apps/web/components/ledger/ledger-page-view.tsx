@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CategoryTabs } from "@/components/ledger/category-tabs";
-import { LedgerTable } from "@/components/ledger/ledger-table";
+import { LedgerDetailTable } from "@/components/ledger/ledger-detail-table";
 import { Button } from "@/components/ui/button";
-import { LEDGER_UPDATED_AT, NEXT_REFRESH, rankLedger, type Ledger } from "@/lib/ledger-data";
+import { LEDGER_UPDATED_AT, NEXT_REFRESH, type Ledger, type RankedEntry } from "@/lib/ledger-data";
 
 /*
   The full-page ledger view shared by every category route. The table is the
   page: full width, immediately after a one-line header. Methodology notes
-  live below the data, not above it.
+  live below the data, not above it. Entries come from the live API.
 */
-export function LedgerPageView({ ledger }: { ledger: Ledger }) {
-  const entries = rankLedger(ledger);
+export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: RankedEntry[] }) {
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -45,7 +44,7 @@ export function LedgerPageView({ ledger }: { ledger: Ledger }) {
 
         {/* the ledger */}
         <div className="mt-8">
-          <LedgerTable entries={entries} />
+          <LedgerDetailTable slug={ledger.slug} entries={entries} />
         </div>
 
         {/* below the data: how to read it */}
@@ -73,12 +72,12 @@ export function LedgerPageView({ ledger }: { ledger: Ledger }) {
               Not on this ledger? <em className="text-primary">Find out why.</em>
             </h2>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Free check: your score, who AI names instead, and the fixes. No account.
+              Free scan: your AI-readiness score and exactly what to fix. No account.
             </p>
           </div>
           <Button asChild size="lg" className="h-12 shrink-0 rounded-lg px-7">
             <Link href={"/#check" as const}>
-              Run the check <ArrowRight />
+              Run the scan <ArrowRight />
             </Link>
           </Button>
         </div>

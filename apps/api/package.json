@@ -7,6 +7,10 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "seed": "tsx src/scripts/seed-ledgers.ts",
+    "smoke": "tsx src/scripts/smoke-engines.ts",
+    "sample": "tsx src/scripts/sample-runs.ts",
+    "refresh": "tsx src/scripts/refresh-category.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

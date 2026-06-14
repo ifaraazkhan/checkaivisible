@@ -14,7 +14,7 @@ function promptScore(m: MentionResult): number {
 }
 
 export function computeScore(mentions: MentionResult[]): AuditScore {
-  const byPlatform: Record<Platform, number> = { chatgpt: 0, gemini: 0 };
+  const byPlatform: Record<Platform, number> = { chatgpt: 0, gemini: 0, perplexity: 0 };
   let appearances = 0;
 
   for (const platform of PLATFORMS) {

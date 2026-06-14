@@ -3,11 +3,22 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { createAudit } from "@/lib/api";
+import { checkDomain } from "@/lib/api";
+
+/** Reduce any user input to a bare hostname for routing (server re-normalizes). */
+function toDomain(input: string): string {
+  const trimmed = input.trim();
+  try {
+    const u = new URL(/^https?:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`);
+    return u.hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return trimmed.replace(/^www\./, "").toLowerCase();
+  }
+}
 
 /*
   The checker as a terminal session — the page's interactive instrument.
-  URL in, audit out. No card chrome, no form furniture.
+  URL in, AI-readiness report out. No card chrome, no form furniture.
 */
 export function CheckerTerminal() {
   const router = useRouter();
@@ -21,9 +32,11 @@ export function CheckerTerminal() {
     setError(null);
     setLoading(true);
     try {
+      const domain = toDomain(url);
+      if (!domain) throw new Error("Enter a valid domain");
       const normalized = /^https?:\/\//.test(url) ? url : `https://${url}`;
-      const res = await createAudit({ url: normalized });
-      router.push(`/results/${res.auditId}`);
+      await checkDomain({ url: normalized });
+      router.push(`/check/${encodeURIComponent(domain)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
@@ -43,13 +56,13 @@ export function CheckerTerminal() {
         <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
         <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
         <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
-        <span className="ml-3 font-mono text-[11px] text-muted-foreground">checkaivisible — audit</span>
+        <span className="ml-3 font-mono text-[11px] text-muted-foreground">checkaivisible — ai-readiness scan</span>
       </div>
 
       <form onSubmit={onSubmit} className="p-5 font-mono text-sm sm:p-6">
         <p className="text-muted-foreground">
-          <span className="text-primary">$</span> checkaivisible audit{" "}
-          <span className="text-foreground/50">--engines chatgpt,gemini --runs 5</span>
+          <span className="text-primary">$</span> checkaivisible scan{" "}
+          <span className="text-foreground/50">--index ai-visibility --engines chatgpt,perplexity,gemini,claude --signals 40+</span>
         </p>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -73,23 +86,23 @@ export function CheckerTerminal() {
             disabled={loading}
             className="h-11 shrink-0 cursor-pointer rounded-lg bg-primary px-5 font-mono text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
           >
-            {loading ? "querying engines…" : "run check ↵"}
+            {loading ? "scanning site…" : "run scan ↵"}
           </button>
         </div>
 
         {loading && (
           <p className="mt-4 text-muted-foreground" aria-live="polite">
-            <span className="text-primary">→</span> asking ChatGPT and Gemini what they tell your customers…
+            <span className="text-primary">→</span> fetching your page the way an AI crawler reads it — checking structure, schema and answers…
           </p>
         )}
         {error && (
           <p className="mt-4 text-destructive" role="alert">
-            ✗ {error} — check the URL and retry
+            ✗ {error} — check the domain and retry
           </p>
         )}
 
         <p className="mt-5 text-[11px] leading-relaxed text-muted-foreground">
-          free · no account · ~30 seconds · returns your score, who AI names instead, and the fixes
+          free · no account · ~10 seconds · returns your AI Visibility Index, the raw evidence we found, and exactly what to fix
         </p>
       </form>
     </motion.div>

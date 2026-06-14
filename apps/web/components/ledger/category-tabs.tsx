@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { LEDGERS } from "@/lib/ledger-data";
+import { fetchLedgerIndex } from "@/lib/ledgers-source";
 
 /*
   The "tabs" are real links — every ledger is its own indexable URL; Next.js
   prefetch makes navigation feel like tab switching. Scrollable on mobile.
+  Category list comes from the live API.
 */
-export function CategoryTabs({ active }: { active?: string }) {
+export async function CategoryTabs({ active }: { active?: string }) {
+  const ledgers = await fetchLedgerIndex();
   return (
     <nav aria-label="Ledger categories" className="border-b border-border">
       <div className="mx-auto flex max-w-[1440px] items-center gap-1.5 overflow-x-auto px-6 py-3 [scrollbar-width:none]">
-        {LEDGERS.map((ledger) => {
+        {ledgers.map((ledger) => {
           const isActive = ledger.slug === active;
           return (
             <Link
@@ -22,7 +24,7 @@ export function CategoryTabs({ active }: { active?: string }) {
                   : "border-border text-muted-foreground hover:border-foreground/25 hover:text-foreground"
               }`}
             >
-              {ledger.kind === "local" ? `${ledger.city?.split(",")[0]} · ` : ""}
+              {ledger.kind === "local" && ledger.city ? `${ledger.city.split(",")[0]} · ` : ""}
               {ledger.title.replace(/^Best /, "")}
             </Link>
           );

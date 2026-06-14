@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { LlmResponse } from "../types.js";
-import { extractBusinessNames } from "./parse.js";
+import { extractMentions } from "./parse.js";
 
 // Uses OpenAI Responses API with the built-in web_search tool.
 // Docs: https://platform.openai.com/docs/guides/tools-web-search
@@ -17,14 +17,17 @@ function getClient(): OpenAI {
 
 const MODEL = "gpt-4o-mini";
 
-export async function queryChatGPT(prompt: string): Promise<LlmResponse> {
+export async function queryChatGPT(prompt: string, system?: string | null): Promise<LlmResponse> {
   const openai = getClient();
 
+  const t0 = Date.now();
   const response = await openai.responses.create({
     model: MODEL,
     tools: [{ type: "web_search" }],
     input: prompt,
+    ...(system ? { instructions: system } : {}),
   });
+  const latencyMs = Date.now() - t0;
 
   const responseText = response.output_text ?? "";
 
@@ -44,11 +47,16 @@ export async function queryChatGPT(prompt: string): Promise<LlmResponse> {
     }
   }
 
+  const mentions = extractMentions(responseText);
   return {
     platform: "chatgpt",
     prompt,
     responseText,
     citations,
-    businessesMentioned: extractBusinessNames(responseText),
+    businessesMentioned: mentions.map((m) => m.name),
+    mentions,
+    model: MODEL,
+    latencyMs,
+    systemPrompt: system ?? null,
   };
 }

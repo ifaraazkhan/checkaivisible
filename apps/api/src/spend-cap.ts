@@ -10,6 +10,7 @@ const DAILY_CAP_CENTS = Number(process.env.DAILY_SPEND_CAP_CENTS ?? "2500");
 const COST_CENTS: Record<Platform, number> = {
   chatgpt: 2, // gpt-4o-mini + web_search ~$0.02 per call
   gemini: 1, // gemini-2.5-flash + grounding ~$0.01 per call
+  perplexity: 2, // sonar (online) ~$0.01–0.02 per call
 };
 
 export async function getTodaySpendCents(): Promise<number> {

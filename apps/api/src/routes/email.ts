@@ -7,6 +7,7 @@ export const email = new Hono();
 const captureSchema = z.object({
   email: z.string().email(),
   auditId: z.string().uuid().optional(),
+  domain: z.string().optional(),
   consentMarketing: z.boolean().default(false),
   source: z.string().optional(),
 });
@@ -22,6 +23,7 @@ email.post("/capture", async (c) => {
   await db.insert(schema.emailCaptures).values({
     email: parsed.data.email.toLowerCase().trim(),
     auditId: parsed.data.auditId,
+    domain: parsed.data.domain,
     consentMarketing: parsed.data.consentMarketing,
     source: parsed.data.source,
   });

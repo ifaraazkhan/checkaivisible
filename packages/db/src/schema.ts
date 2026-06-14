@@ -1,5 +1,4 @@
 import {
-  pgTable,
   uuid,
   text,
   integer,
@@ -8,20 +7,25 @@ import {
   jsonb,
   index,
   primaryKey,
-  pgEnum,
+  unique,
+  real,
+  pgSchema,
 } from "drizzle-orm/pg-core";
 
-export const auditStatus = pgEnum("audit_status", [
+// All tables/enums live in the `cav1` Postgres schema (not `public`).
+export const cav1 = pgSchema("cav1");
+
+export const auditStatus = cav1.enum("audit_status", [
   "pending",
   "running",
   "done",
   "failed",
 ]);
 
-export const llmPlatform = pgEnum("llm_platform", ["chatgpt", "gemini"]);
+export const llmPlatform = cav1.enum("llm_platform", ["chatgpt", "gemini", "perplexity"]);
 
 // Vertical categories supported. Add new ones here as we expand.
-export const businessCategory = pgEnum("business_category", [
+export const businessCategory = cav1.enum("business_category", [
   "restaurant",
   "dentist",
   "lawyer",
@@ -29,7 +33,7 @@ export const businessCategory = pgEnum("business_category", [
   "spa",
 ]);
 
-export const apiKeyTier = pgEnum("api_key_tier", [
+export const apiKeyTier = cav1.enum("api_key_tier", [
   "internal",
   "beta",
   "starter",
@@ -37,7 +41,7 @@ export const apiKeyTier = pgEnum("api_key_tier", [
   "enterprise",
 ]);
 
-export const businesses = pgTable(
+export const businesses = cav1.table(
   "businesses",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -59,7 +63,7 @@ export const businesses = pgTable(
   }),
 );
 
-export const audits = pgTable(
+export const audits = cav1.table(
   "audits",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -82,7 +86,7 @@ export const audits = pgTable(
 
 // Query results cached at (city, category, prompt, platform) level — not per business.
 // One row covers every business mentioned in that LLM response.
-export const queryCache = pgTable(
+export const queryCache = cav1.table(
   "query_cache",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -103,7 +107,7 @@ export const queryCache = pgTable(
   }),
 );
 
-export const results = pgTable(
+export const results = cav1.table(
   "results",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -122,7 +126,7 @@ export const results = pgTable(
   }),
 );
 
-export const rateLimits = pgTable(
+export const rateLimits = cav1.table(
   "rate_limits",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -134,12 +138,13 @@ export const rateLimits = pgTable(
   }),
 );
 
-export const emailCaptures = pgTable(
+export const emailCaptures = cav1.table(
   "email_captures",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").notNull(),
     auditId: uuid("audit_id").references(() => audits.id, { onDelete: "set null" }),
+    domain: text("domain"), // the domain whose fix plan this lead unlocked, if any
     consentMarketing: boolean("consent_marketing").notNull().default(false),
     source: text("source"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -149,7 +154,7 @@ export const emailCaptures = pgTable(
   }),
 );
 
-export const leaderboardRank = pgTable(
+export const leaderboardRank = cav1.table(
   "leaderboard_rank",
   {
     city: text("city").notNull(),
@@ -167,7 +172,7 @@ export const leaderboardRank = pgTable(
   }),
 );
 
-export const prewarmJobs = pgTable("prewarm_jobs", {
+export const prewarmJobs = cav1.table("prewarm_jobs", {
   id: uuid("id").primaryKey().defaultRandom(),
   city: text("city").notNull(),
   category: businessCategory("category").notNull().default("restaurant"),
@@ -180,7 +185,7 @@ export const prewarmJobs = pgTable("prewarm_jobs", {
 });
 
 // API key issuance for Layer 1 (data API to vertical SaaS platforms).
-export const apiKeys = pgTable(
+export const apiKeys = cav1.table(
   "api_keys",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -200,7 +205,7 @@ export const apiKeys = pgTable(
 );
 
 // Per-request usage log for billing + abuse detection.
-export const apiUsage = pgTable(
+export const apiUsage = cav1.table(
   "api_usage",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -215,5 +220,181 @@ export const apiUsage = pgTable(
   },
   (t) => ({
     keyTimeIdx: index("api_usage_key_time_idx").on(t.apiKeyId, t.createdAt),
+  }),
+);
+
+/* ============================================================================
+   v2 — leaderboard + auth + monetization (additive; v1 tables above untouched)
+   See Planning/launch-monetization.md and Planning/dev-roadmap.md.
+   ========================================================================== */
+
+export const ledgerKind = cav1.enum("ledger_kind", ["software", "local"]);
+
+export const subscriptionStatus = cav1.enum("subscription_status", [
+  "active",
+  "trialing",
+  "past_due",
+  "canceled",
+  "incomplete",
+]);
+
+// Users — created/upserted on Google sign-in (Auth.js JWT sessions, no DB session table).
+export const users = cav1.table(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    googleId: text("google_id"),
+    name: text("name"),
+    imageUrl: text("image_url"),
+    paymentCustomerId: text("payment_customer_id"), // Dodo Payments customer id
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  },
+  (t) => ({
+    emailUnq: unique("users_email_unq").on(t.email),
+    googleIdUnq: unique("users_google_id_unq").on(t.googleId),
+  }),
+);
+
+// Leaderboard categories ("best-crm" or "austin/restaurants") — mirrors the frontend ledgers.
+export const categories = cav1.table(
+  "categories",
+  {
+    slug: text("slug").primaryKey(),
+    title: text("title").notNull(),
+    query: text("query").notNull(),
+    kind: ledgerKind("kind").notNull().default("software"),
+    city: text("city"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    kindIdx: index("categories_kind_idx").on(t.kind),
+  }),
+);
+
+// Weekly leaderboard snapshot. One row per business per category per week.
+// runs = { chatgpt, gemini, perplexity } appearance counts (0–5 each).
+export const leaderboardSnapshots = cav1.table(
+  "leaderboard_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    categorySlug: text("category_slug")
+      .notNull()
+      .references(() => categories.slug, { onDelete: "cascade" }),
+    weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+    businessName: text("business_name").notNull(),
+    runs: jsonb("runs").notNull(),
+    score: integer("score").notNull(),
+    avgRank: real("avg_rank"), // mean position when named (ranking tiebreaker)
+    rank: integer("rank").notNull(),
+    citationsJson: jsonb("citations_json"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    snapUnq: unique("snapshots_cat_week_biz_unq").on(t.categorySlug, t.weekStart, t.businessName),
+    lookupIdx: index("snapshots_cat_week_rank_idx").on(t.categorySlug, t.weekStart, t.rank),
+  }),
+);
+
+// Per-domain weekly cache (the lean rule). First check/domain/week runs the
+// engines and stores the diagnosis; repeats this week serve this row.
+export const domainChecks = cav1.table(
+  "domain_checks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    domain: text("domain").notNull(),
+    weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+    status: auditStatus("status").notNull().default("pending"),
+    reportJson: jsonb("report_json"), // the free diagnosis (what's missing)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => ({
+    domainWeekUnq: unique("domain_checks_domain_week_unq").on(t.domain, t.weekStart),
+    expiryIdx: index("domain_checks_domain_expiry_idx").on(t.domain, t.expiresAt),
+  }),
+);
+
+// Per-user check log — enforces the free 1-check-per-week limit (result itself
+// is shared via domain_checks).
+export const checkRequests = cav1.table(
+  "check_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    domain: text("domain").notNull(),
+    domainCheckId: uuid("domain_check_id").references(() => domainChecks.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    userTimeIdx: index("check_requests_user_time_idx").on(t.userId, t.createdAt),
+  }),
+);
+
+// Recurring subscriptions (the frequency + depth plan). Provider = Dodo Payments.
+export const subscriptions = cav1.table(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    providerSubscriptionId: text("provider_subscription_id").notNull(),
+    providerCustomerId: text("provider_customer_id").notNull(),
+    status: subscriptionStatus("status").notNull(),
+    productId: text("product_id"),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    subIdUnq: unique("subscriptions_provider_sub_unq").on(t.providerSubscriptionId),
+    userIdx: index("subscriptions_user_idx").on(t.userId),
+  }),
+);
+
+// Granular per-run, per-business mention metadata — one row per business named
+// in a single engine run. Powers the business detail view ("what each AI said")
+// and is aggregated into leaderboard_snapshots.runs.
+export const businessMentions = cav1.table(
+  "business_mentions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    categorySlug: text("category_slug")
+      .notNull()
+      .references(() => categories.slug, { onDelete: "cascade" }),
+    weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+    businessName: text("business_name").notNull(),
+    engine: llmPlatform("engine").notNull(),
+    prompt: text("prompt"), // which of the ~20 phrasings produced this
+    runIndex: integer("run_index").notNull(), // 0..4
+    rank: integer("rank"), // position in that answer
+    reason: text("reason"), // the snippet/why the engine gave
+    citationsJson: jsonb("citations_json"), // sources on that run
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    lookupIdx: index("business_mentions_lookup_idx").on(t.categorySlug, t.weekStart, t.businessName),
+    catWeekEngineIdx: index("business_mentions_cwe_idx").on(t.categorySlug, t.weekStart, t.engine),
+  }),
+);
+
+// One-time "fix report" unlocks (the depth paywall, single domain). Provider = Dodo Payments.
+export const purchases = cav1.table(
+  "purchases",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    domain: text("domain").notNull(),
+    providerPaymentId: text("provider_payment_id"),
+    amountCents: integer("amount_cents"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index("purchases_user_idx").on(t.userId),
+    domainIdx: index("purchases_domain_idx").on(t.domain),
   }),
 );

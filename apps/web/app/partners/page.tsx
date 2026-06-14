@@ -22,7 +22,7 @@ export default function PartnersPage() {
           The measurement layer for AI discovery
         </h1>
         <p className="mt-5 text-lg text-muted-foreground">
-          checkaivisible scores how often ChatGPT and Gemini recommend any local
+          checkaivisible scores how often ChatGPT, Gemini and Perplexity recommend any local
           business — across any US city, against its real competitors. Same
           engine. Three ways to use it.
         </p>

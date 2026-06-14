@@ -40,3 +40,7 @@ drizzle/
 
 # Test
 coverage/
+
+# Local agent / tooling
+.claude/
+.impeccable/

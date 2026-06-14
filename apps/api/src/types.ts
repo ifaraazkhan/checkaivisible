@@ -3,7 +3,7 @@
 export const CATEGORIES = ["restaurant", "dentist", "lawyer", "plumber", "spa"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
-export const PLATFORMS = ["chatgpt", "gemini"] as const;
+export const PLATFORMS = ["chatgpt", "gemini", "perplexity"] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
 export type BusinessProfile = {
@@ -17,12 +17,23 @@ export type BusinessProfile = {
   gbpPlaceId: string | null;
 };
 
+// A single parsed business mention, with the context the engine gave for it.
+export type ParsedMention = {
+  name: string;
+  rank: number | null; // position in the engine's list (1-based)
+  reason: string | null; // the short reason/snippet the engine gave
+};
+
 export type LlmResponse = {
   platform: Platform;
   prompt: string;
   responseText: string;
   citations: string[];
   businessesMentioned: string[];
+  mentions: ParsedMention[]; // rank + reason snippet per business
+  model?: string;
+  latencyMs?: number;
+  systemPrompt?: string | null;
 };
 
 export type MentionResult = {

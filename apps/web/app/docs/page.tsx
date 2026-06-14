@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "API Docs",
   description:
-    "REST API for AI visibility scoring. Measure how often ChatGPT and Gemini recommend any local business.",
+    "REST API for AI visibility scoring. Measure how often ChatGPT, Gemini and Perplexity recommend any local business.",
   alternates: { canonical: "/docs" },
 };
 

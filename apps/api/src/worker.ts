@@ -5,11 +5,22 @@ import { PLATFORMS } from "./types.js";
 import { generatePrompts } from "./queries.js";
 import { queryChatGPT } from "./llm/openai.js";
 import { queryGemini } from "./llm/gemini.js";
+import { queryPerplexity } from "./llm/perplexity.js";
+import { extractMentions } from "./llm/parse.js";
+
+// Dispatch table — one entry per engine so adding an engine is a single line.
+const ENGINE: Record<Platform, (prompt: string) => Promise<LlmResponse>> = {
+  chatgpt: queryChatGPT,
+  gemini: queryGemini,
+  perplexity: queryPerplexity,
+};
 import { detectMention } from "./mention.js";
 import { computeScore } from "./score.js";
 import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { analyzeDomain } from "./readiness/analyze.js";
 
 export const AUDIT_QUEUE = "audit";
+export const DOMAIN_CHECK_QUEUE = "domain-check";
 
 let boss: PgBoss | null = null;
 
@@ -60,6 +71,7 @@ async function getCachedOrFetch(
         citations: (row.citationsJson as string[] | null) ?? [],
         businessesMentioned:
           (row.businessesMentionedJson as string[] | null) ?? [],
+        mentions: extractMentions(row.responseText),
       },
     };
   }
@@ -69,8 +81,7 @@ async function getCachedOrFetch(
   }
 
   const t0 = Date.now();
-  const response =
-    platform === "chatgpt" ? await queryChatGPT(prompt) : await queryGemini(prompt);
+  const response = await ENGINE[platform](prompt);
   const elapsed = Date.now() - t0;
 
   const apiKeyId = await getInternalApiKeyId();
@@ -184,9 +195,62 @@ async function runAudit(data: AuditJobData): Promise<void> {
     });
 }
 
+// ---- v2 domain check: the on-page AI-readiness audit -----------------------
+
+export type DomainCheckJobData = { domainCheckId: string; domain: string };
+
+async function runDomainCheck(data: DomainCheckJobData): Promise<void> {
+  const db = getDb();
+  const { domainCheckId, domain } = data;
+
+  // Live "thinking" log: each analyzer step closes the previous one and appends a
+  // new running step. We persist it to report_json while status is "running" so the
+  // client can poll and render where the engine is (and where a slow site stalls).
+  // Writes are serialized on a single chain and drained before the final report
+  // write, so a lagging progress write can never clobber the finished report.
+  const steps: { label: string; detail?: string; done: boolean }[] = [];
+  let chain: Promise<unknown> = Promise.resolve();
+  let lastWrite = 0;
+  const flushProgress = () => {
+    chain = chain.then(() =>
+      db
+        .update(schema.domainChecks)
+        .set({ reportJson: { progress: { steps } } })
+        .where(eq(schema.domainChecks.id, domainCheckId))
+        .catch((e) => console.error("[domain-check:progress]", e)),
+    );
+    return chain;
+  };
+
+  const onProgress = (label: string, detail?: string) => {
+    if (steps.length) steps[steps.length - 1]!.done = true;
+    steps.push({ label, detail, done: false });
+    const now = Date.now();
+    if (now - lastWrite >= 300) {
+      lastWrite = now; // throttle DB writes, but keep every step in the array
+      void flushProgress();
+    }
+  };
+
+  await db
+    .update(schema.domainChecks)
+    .set({ status: "running", reportJson: { progress: { steps } } })
+    .where(eq(schema.domainChecks.id, domainCheckId));
+
+  const report = await analyzeDomain(domain, onProgress);
+  if (steps.length) steps[steps.length - 1]!.done = true;
+
+  await chain; // drain any in-flight progress writes before the final report write
+  await db
+    .update(schema.domainChecks)
+    .set({ status: report.meta.fetchOk ? "done" : "failed", reportJson: report })
+    .where(eq(schema.domainChecks.id, domainCheckId));
+}
+
 export async function startWorker(): Promise<void> {
   const b = await getBoss();
   await b.createQueue(AUDIT_QUEUE);
+  await b.createQueue(DOMAIN_CHECK_QUEUE);
   await b.work<AuditJobData>(AUDIT_QUEUE, async (jobs: Job<AuditJobData>[]) => {
     for (const job of jobs) {
       try {
@@ -202,10 +266,38 @@ export async function startWorker(): Promise<void> {
       }
     }
   });
-  console.log(`[worker] listening on queue "${AUDIT_QUEUE}"`);
+  await b.work<DomainCheckJobData>(
+    DOMAIN_CHECK_QUEUE,
+    async (jobs: Job<DomainCheckJobData>[]) => {
+      for (const job of jobs) {
+        try {
+          await runDomainCheck(job.data);
+        } catch (err) {
+          console.error("[domain-check:fail]", job.id, err);
+          const db = getDb();
+          await db
+            .update(schema.domainChecks)
+            .set({ status: "failed" })
+            .where(eq(schema.domainChecks.id, job.data.domainCheckId));
+          throw err;
+        }
+      }
+    },
+  );
+  console.log(`[worker] listening on queues "${AUDIT_QUEUE}", "${DOMAIN_CHECK_QUEUE}"`);
 }
 
 export async function enqueueAudit(auditId: string): Promise<void> {
   const b = await getBoss();
   await b.send(AUDIT_QUEUE, { auditId } satisfies AuditJobData);
+}
+
+export async function enqueueDomainCheck(domainCheckId: string, domain: string): Promise<void> {
+  const b = await getBoss();
+  // If a worker dies mid-job, expire it and retry so the check never gets pinned.
+  await b.send(DOMAIN_CHECK_QUEUE, { domainCheckId, domain } satisfies DomainCheckJobData, {
+    expireInSeconds: 120,
+    retryLimit: 2,
+    retryDelay: 5,
+  });
 }
