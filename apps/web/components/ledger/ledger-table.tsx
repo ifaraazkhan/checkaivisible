@@ -23,22 +23,28 @@ export function LedgerTable({
   const reduce = useReducedMotion();
 
   return (
-    <div>
+    <div role="table" aria-label="AI recommendation leaderboard">
       {/* column heads */}
-      <div className="hidden grid-cols-[2.5rem_minmax(0,1fr)_4rem_repeat(3,5rem)_7rem_3.5rem] items-end gap-4 pb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground lg:grid">
-        <span>#</span>
-        <span>Name · sources</span>
-        <span className="text-right">Score</span>
-        {ENGINES.map((engine) => (
-          <span key={engine} className="text-right">
-            {ENGINE_LABELS[engine]}
-          </span>
-        ))}
-        <span className="text-right">8-wk rank</span>
-        <span className="text-right">Δ wk</span>
+      <div role="rowgroup">
+        <div
+          role="row"
+          className="hidden grid-cols-[2.5rem_minmax(0,1fr)_4rem_repeat(3,5rem)_7rem_3.5rem] items-end gap-4 pb-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground lg:grid"
+        >
+          <span role="columnheader">#</span>
+          <span role="columnheader">Name · sources</span>
+          <span role="columnheader" className="text-right">Score</span>
+          {ENGINES.map((engine) => (
+            <span role="columnheader" key={engine} className="text-right">
+              {ENGINE_LABELS[engine]}
+            </span>
+          ))}
+          <span role="columnheader" className="text-right">8-wk rank</span>
+          <span role="columnheader" className="text-right">Δ wk</span>
+        </div>
       </div>
 
       <motion.ol
+        role="rowgroup"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-40px" }}
@@ -65,6 +71,7 @@ function Row({
 
   return (
     <motion.li
+      role="row"
       variants={{
         hidden: reduce ? {} : { opacity: 0 },
         visible: { opacity: 1, transition: { duration: 0.35 } },
@@ -82,11 +89,15 @@ function Row({
         }}
       />
 
-      <span className={`font-mono text-base tabular-nums ${first ? "font-semibold text-primary" : "text-muted-foreground"}`}>
+      <span
+        role="cell"
+        aria-label={`Rank ${entry.rank}`}
+        className={`font-mono text-base tabular-nums ${first ? "font-semibold text-primary" : "text-muted-foreground"}`}
+      >
         {entry.rank}
       </span>
 
-      <span className="min-w-0">
+      <span role="cell" className="min-w-0">
         <span className="block truncate text-[15px] font-medium tracking-tight">
           {onSelect ? (
             <button
@@ -112,18 +123,27 @@ function Row({
         </span>
       </span>
 
-      <span className={`text-right font-mono text-base tabular-nums ${first ? "text-primary" : "text-foreground/90"}`}>
+      <span
+        role="cell"
+        aria-label={`Score ${entry.score}`}
+        className={`text-right font-mono text-base tabular-nums ${first ? "text-primary" : "text-foreground/90"}`}
+      >
         {entry.score}
       </span>
 
       {ENGINES.map((engine) => (
-        <span key={engine} className="hidden items-center justify-end gap-2 lg:flex">
+        <span
+          key={engine}
+          role="cell"
+          aria-label={`${ENGINE_LABELS[engine]}: mentioned in ${entry.runs[engine]} of 5 runs`}
+          className="hidden items-center justify-end gap-2 lg:flex"
+        >
           <Meter value={entry.runs[engine]} reduce={reduce} />
-          <span className="font-mono text-xs tabular-nums text-muted-foreground">{entry.runs[engine]}/5</span>
+          <span aria-hidden className="font-mono text-xs tabular-nums text-muted-foreground">{entry.runs[engine]}/5</span>
         </span>
       ))}
 
-      <span className="hidden justify-end lg:flex">
+      <span role="cell" aria-label="8-week rank trend" className="hidden justify-end lg:flex">
         <Sparkline history={entry.history} gold={first} reduce={reduce} />
       </span>
 
@@ -176,12 +196,20 @@ function Sparkline({ history, gold, reduce }: { history: number[]; gold: boolean
 
 function Delta({ delta }: { delta: number }) {
   if (delta === 0) {
-    return <span className="text-right font-mono text-xs text-muted-foreground">—</span>;
+    return (
+      <span role="cell" aria-label="No change this week" className="text-right font-mono text-xs text-muted-foreground">
+        —
+      </span>
+    );
   }
   const up = delta > 0;
   return (
-    <span className={`flex items-center justify-end gap-0.5 font-mono text-xs tabular-nums ${up ? "text-success" : "text-destructive"}`}>
-      {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+    <span
+      role="cell"
+      aria-label={`${up ? "Up" : "Down"} ${Math.abs(delta)} this week`}
+      className={`flex items-center justify-end gap-0.5 font-mono text-xs tabular-nums ${up ? "text-success" : "text-destructive"}`}
+    >
+      {up ? <ArrowUp aria-hidden className="h-3 w-3" /> : <ArrowDown aria-hidden className="h-3 w-3" />}
       {Math.abs(delta)}
     </span>
   );

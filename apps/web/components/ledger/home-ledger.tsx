@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { LedgerTable } from "@/components/ledger/ledger-table";
 import { BusinessDetail } from "@/components/ledger/business-detail";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { LEDGER_UPDATED_AT, NEXT_REFRESH, type RankedEntry } from "@/lib/ledger-data";
 import {
   fetchLedger,
@@ -21,6 +23,8 @@ export function HomeLedger() {
   const [active, setActive] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("");
   const [entries, setEntries] = useState<RankedEntry[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [reloadKey, setReloadKey] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,15 +37,21 @@ export function HomeLedger() {
   useEffect(() => {
     if (!active) return;
     let alive = true;
+    setStatus("loading");
     fetchLedger(active).then((data) => {
-      if (!alive || !data) return;
+      if (!alive) return;
+      if (!data) {
+        setStatus("error");
+        return;
+      }
       setTitle(data.ledger.title);
       setEntries(data.entries);
+      setStatus("ready");
     });
     return () => {
       alive = false;
     };
-  }, [active]);
+  }, [active, reloadKey]);
 
   return (
     <div className="rounded-xl border border-border bg-card/50">
@@ -88,13 +98,19 @@ export function HomeLedger() {
       <div className="px-4 pb-5 pt-2 sm:px-5">
         {/* key remount re-runs the drawn-in animation per category switch */}
         <div key={active ?? "none"}>
-          <LedgerTable entries={entries.slice(0, 6)} onSelectBusiness={setSelected} />
+          {status === "loading" ? (
+            <LedgerSkeleton />
+          ) : status === "error" ? (
+            <LedgerError onRetry={() => setReloadKey((k) => k + 1)} />
+          ) : (
+            <LedgerTable entries={entries.slice(0, 6)} onSelectBusiness={setSelected} />
+          )}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <span className="font-mono text-[11px] text-muted-foreground">
             n/5 = mentioned in n of 5 runs · placement is never for sale
           </span>
-          {active && (
+          {active && status === "ready" && (
             <Link
               href={`/${active}` as never}
               className="inline-flex items-center gap-1 font-mono text-xs text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
@@ -108,6 +124,43 @@ export function HomeLedger() {
       {selected && active && (
         <BusinessDetail slug={active} name={selected} onClose={() => setSelected(null)} />
       )}
+    </div>
+  );
+}
+
+/* skeleton rows while the ledger loads — matches the table's grid rhythm */
+function LedgerSkeleton() {
+  return (
+    <div role="status" className="pt-2">
+      <span className="sr-only">Loading leaderboard…</span>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          aria-hidden
+          className="grid min-h-16 grid-cols-[2.5rem_minmax(0,1fr)_4rem_3.5rem] items-center gap-4 border-t border-border py-3.5 lg:grid-cols-[2.5rem_minmax(0,1fr)_4rem_repeat(3,5rem)_7rem_3.5rem]"
+        >
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 w-40 max-w-full" />
+          <Skeleton className="h-4 w-8 justify-self-end" />
+          <Skeleton className="hidden h-3 w-10 justify-self-end lg:block" />
+          <Skeleton className="hidden h-3 w-10 justify-self-end lg:block" />
+          <Skeleton className="hidden h-3 w-10 justify-self-end lg:block" />
+          <Skeleton className="hidden h-3 w-16 justify-self-end lg:block" />
+          <Skeleton className="h-3 w-6 justify-self-end" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ledger fetch failed — plain message + retry, no dead-end */
+function LedgerError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div role="alert" className="flex flex-col items-center gap-3 py-14 text-center">
+      <p className="font-mono text-sm text-muted-foreground">Couldn&rsquo;t load this ledger.</p>
+      <Button variant="outline" size="sm" onClick={onRetry}>
+        Retry
+      </Button>
     </div>
   );
 }
