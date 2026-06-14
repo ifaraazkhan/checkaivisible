@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { CategoryTabs } from "@/components/ledger/category-tabs";
+import { LedgerSearch } from "@/components/ledger/ledger-search";
 import { LEDGER_UPDATED_AT, NEXT_REFRESH } from "@/lib/ledger-data";
 import { fetchLedgerIndex, type LedgerIndexItem } from "@/lib/ledgers-source";
 
@@ -39,6 +40,10 @@ export default async function LeaderboardsPage() {
           Every ledger is its own page, refreshed weekly. {ledgers.length} open now; 60 at public
           launch. The current #1 is shown beside each.
         </p>
+
+        <div className="mt-8">
+          <LedgerSearch />
+        </div>
 
         <Group title={`Software — ${software.length} open`} ledgers={software} />
         <Group title={`Local — ${local.length} open`} ledgers={local} />

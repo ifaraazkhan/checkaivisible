@@ -3,6 +3,8 @@ import { getDb, schema, and, eq, sql } from "@cav/db";
 import { rankLedger, type LedgerEntryInput, type RankedLedgerEntry } from "../ledger-rank.js";
 import { canonicalKey, DisplayPicker } from "../canonical.js";
 import { PLATFORMS, type Platform } from "../types.js";
+import { searchLedgers, logSearch } from "../search.js";
+import { seedFromSearch } from "../category-discovery.js";
 
 // Public read API for the leaderboard, served from the latest weekly snapshot.
 // Replaces the frontend's sample data (apps/web/lib/ledger-data.ts).
@@ -144,6 +146,18 @@ ledgers.get("/detail", async (c) => {
     byEngine,
     sources: [...sources].slice(0, 12),
   });
+});
+
+// GET /ledgers/search?q=... — fuzzy category search. Logs every query (analytics +
+// the discovery demand loop) and seeds a candidate when nothing matches. Must be
+// registered before the /:slug catch-all. Logging/seeding is fire-and-forget.
+ledgers.get("/search", async (c) => {
+  const q = (c.req.query("q") ?? "").trim();
+  if (q.length < 2) return c.json({ query: q, results: [] });
+  const results = await searchLedgers(q);
+  void logSearch(q, results.length, results[0]?.slug ?? null).catch(() => {});
+  if (results.length === 0) void seedFromSearch(q).catch(() => {});
+  return c.json({ query: q, results });
 });
 
 // GET /ledgers/:a/:b — local ledgers whose slug is "city/category" (e.g. austin/restaurants).

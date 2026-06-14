@@ -161,7 +161,12 @@ mint thin/spam pages.
   the optimizer. Fold Trends slope into demand_score; periodic re-validation
   retires categories that stop naming brands (→ dormant).
 
-## User-side discovery (search) — to build alongside Phase 2
+## User-side discovery (search) — BUILT (consumer search + demand loop)
+
+Status: consumer search + query logging + miss→candidate loop shipped. Still open:
+browse-by-theme UI (column exists, not yet LLM-tagged) and the domain→ledger
+semantic match (needs embeddings). Details below.
+
 
 Auto-discovery scales 8 ledgers → hundreds, so "scroll the list" breaks. Two
 discovery problems, **one engine** (match free text/intent → a category):

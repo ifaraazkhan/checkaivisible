@@ -14,6 +14,7 @@
     "discover": "tsx src/scripts/discover.ts",
     "migrate:candidates": "tsx src/scripts/migrate-candidates.ts",
     "migrate:tiers": "tsx src/scripts/migrate-tiers.ts",
+    "migrate:search": "tsx src/scripts/migrate-search.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

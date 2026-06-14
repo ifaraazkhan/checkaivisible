@@ -266,6 +266,7 @@ export const categories = cav1.table(
     query: text("query").notNull(),
     kind: ledgerKind("kind").notNull().default("software"),
     city: text("city"),
+    theme: text("theme"), // browse-by-group label (Marketing / Sales / Dev tools…), LLM-tagged
     // --- tiering / scheduler (Phase 2, Planning/category-discovery.md) ---
     // Cadence is EARNED by volatility: refresh churn × traffic decides the slab.
     tier: text("tier").notNull().default("A"), // S | A | B | C | dormant
@@ -304,6 +305,27 @@ export const categoryCandidates = cav1.table(
   },
   (t) => ({
     statusIdx: index("category_candidates_status_idx").on(t.status),
+  }),
+);
+
+// Every on-site search query — first-party analytics + the discovery demand loop.
+// result_count = 0 rows seed category_candidates (source="search"); the full log
+// powers top-searches/gaps analytics and trend-onset detection. Written
+// fire-and-forget on each search (never blocks the response).
+export const searchQueries = cav1.table(
+  "search_queries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    query: text("query").notNull(),
+    normalized: text("normalized"), // categoryKey(query) — groups variants
+    resultCount: integer("result_count").notNull(),
+    matchedSlug: text("matched_slug"), // top result, if any
+    userId: uuid("user_id"), // nullable until auth lands
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    createdIdx: index("search_queries_created_idx").on(t.createdAt),
+    normIdx: index("search_queries_norm_idx").on(t.normalized),
   }),
 );
 

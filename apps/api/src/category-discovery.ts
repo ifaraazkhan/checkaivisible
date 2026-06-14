@@ -214,6 +214,19 @@ export async function harvest(
   return { autocomplete: autocomplete.length, engine: engine.length, saved };
 }
 
+// Turn a no-result on-site search into a candidate (the demand loop). User-driven,
+// so it gets a high demand weight. Deduped by saveCandidates.
+export async function seedFromSearch(query: string): Promise<void> {
+  const lower = query.trim().toLowerCase();
+  const phrase = asCategoryPhrase(/\b(best|top)\b/.test(lower) ? lower : `best ${lower}`);
+  if (!phrase) return;
+  const slug = slugify(phrase);
+  if (!slug) return;
+  await saveCandidates([
+    { slug, title: titleCase(phrase), query: toQuery(phrase), source: "search", demandScore: 0.7 },
+  ]);
+}
+
 // ---- probe: validate top-N pending candidates (1 cheap run each) ----
 
 export async function probeCandidates(limit = 10): Promise<{ probed: number }> {
