@@ -14,7 +14,7 @@ function Wordmark({ className }: { className?: string }) {
       >
         <span className="text-[0.66em] font-bold leading-none tracking-[-0.02em]">AI</span>
       </span>
-      CheckAIVisible
+      Check<span className="text-primary">AI</span>Visible
     </span>
   );
 }
