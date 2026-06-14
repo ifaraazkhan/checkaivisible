@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
    Gold lives only in the badge so it stays scarce; wordmark is ink. */
 function Wordmark({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2 font-semibold tracking-tight text-foreground", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 font-semibold tracking-tight text-foreground", className)}>
       <span
         aria-hidden
         className="grid h-[1.55em] w-[1.55em] place-items-center rounded-[0.32em] border border-border bg-card text-primary"
