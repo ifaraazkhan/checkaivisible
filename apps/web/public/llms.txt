@@ -1,25 +1,36 @@
 # checkaivisible.com
-> The only AI-visibility tool built for local restaurants. Check if ChatGPT and Gemini recommend your restaurant when customers search your category in your city.
+> CheckAIVisible publishes which businesses ChatGPT, Gemini and Perplexity actually recommend in each category — refreshed weekly, with the source citations — plus a free tool to check how ready any website is to be read and cited by AI answer engines.
 
 ## What this site is
-- Free AI visibility checker for US local restaurants
-- Public leaderboards of which restaurants appear in AI search results by city
-- Methodology and data sources are transparent
+- Public **leaderboards** of who AI recommends per category (e.g. best CRM, best AI coding assistant), built by asking ChatGPT, Gemini and Perplexity the same question five times each, every week.
+- A free **AI-readiness checker**: enter a domain and get an on-page AEO/SEO/GEO score with the exact gaps holding it back.
+- Transparent method: appearance rates, weekly deltas and the engines' own citations are all published. **Placement is never for sale.**
 
 ## Main sections
-- [Home](https://checkaivisible.com/): Run a free AI visibility check on any restaurant URL
-- [Methodology](https://checkaivisible.com/methodology): How the AI visibility score is calculated
-- [About](https://checkaivisible.com/about): Why we built this and the data behind it
+- [Home](https://checkaivisible.com/): What AI recommends, plus the free visibility checker.
+- [All leaderboards](https://checkaivisible.com/leaderboards): The full, searchable index of category ledgers, grouped by theme.
+- [Docs / method](https://checkaivisible.com/docs): How the rankings and the AI-readiness score are calculated.
 
-## City leaderboards
-- [New York restaurants](https://checkaivisible.com/new-york/restaurants)
-- [Los Angeles restaurants](https://checkaivisible.com/los-angeles/restaurants)
-- [Chicago restaurants](https://checkaivisible.com/chicago/restaurants)
-- [Austin restaurants](https://checkaivisible.com/austin/restaurants)
-- [Miami restaurants](https://checkaivisible.com/miami/restaurants)
+## Example leaderboards
+- [Best CRM](https://checkaivisible.com/best-crm)
+- [Best AI coding assistant](https://checkaivisible.com/best-ai-coding-assistant)
+- [Best email marketing tool](https://checkaivisible.com/best-email-marketing)
+- [Best project management software](https://checkaivisible.com/best-project-management)
+- [Best note-taking app](https://checkaivisible.com/best-note-taking-app)
+
+## How the leaderboards are built
+- Each category is asked as a natural question (e.g. "What is the best CRM?").
+- Every question is sampled **5 times per engine** across ChatGPT, Gemini and Perplexity — a single run would be noise.
+- Mentions are fuzzy-matched and canonicalized to real businesses; the score is how often a business is named across runs and engines.
+- The citation each engine points to is kept and shown, so every ranking is traceable.
+- Ledgers refresh on a cadence earned by volatility (hot categories more often, stable ones less).
+
+## How the AI-readiness checker works
+- It fetches a page the way an AI crawler does (raw HTML, no JavaScript) plus robots.txt, sitemap.xml and llms.txt.
+- It scores 7 pillars: AI crawlability, rendering/content availability, structured data (Schema.org), answer-engine optimization, authority/trust (E-E-A-T), performance and SEO fundamentals.
+- It returns an overall score, an AI-specific sub-score, a tier, and a prioritized list of what to fix. No login required.
 
 ## Key facts
-- 45% of US consumers now use AI (ChatGPT, Gemini) for local business recommendations (BrightLocal LCRS 2026, up from 6% in 2025)
-- AI is the #3 most-used recommendation source behind Google and Facebook
-- ChatGPT-driven local searches convert at 15.9% vs 1.76% for Google organic (Seer Interactive)
-- ChatGPT sources local recommendations from Bing index, Yelp, TripAdvisor, BBB, and Reddit — not directly from Google Business Profile
+- AI answer engines (ChatGPT, Gemini, Perplexity) increasingly recommend specific businesses by name when people ask for the "best" option in a category.
+- Many sites are never read correctly by these engines because their content loads via JavaScript or lacks structured data — the checker measures exactly that.
+- CheckAIVisible never sells placement on any leaderboard; a paid spot would make a trust ranking worthless.

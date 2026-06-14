@@ -92,8 +92,11 @@ export function SiteFooter() {
           <FooterCol
             title="Company"
             links={[
+              { label: "About", href: "/about" },
+              { label: "Methodology", href: "/methodology" },
               { label: "Contact", href: "mailto:hello@checkaivisible.com" },
-              { label: "API (pilot)", href: "/docs" },
+              { label: "Privacy", href: "/privacy" },
+              { label: "Terms", href: "/terms" },
             ]}
           />
         </div>

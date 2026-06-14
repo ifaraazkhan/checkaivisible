@@ -8,8 +8,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, lastModified: now, priority: 1.0 },
     { url: `${siteUrl}/leaderboards`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/methodology`, lastModified: now, priority: 0.6 },
+    { url: `${siteUrl}/about`, lastModified: now, priority: 0.5 },
     { url: `${siteUrl}/docs`, lastModified: now, priority: 0.5 },
     { url: `${siteUrl}/partners`, lastModified: now, priority: 0.5 },
+    { url: `${siteUrl}/privacy`, lastModified: now, priority: 0.3 },
+    { url: `${siteUrl}/terms`, lastModified: now, priority: 0.3 },
   ];
 
   const ledgerPages: MetadataRoute.Sitemap = LEDGERS.map((ledger) => ({

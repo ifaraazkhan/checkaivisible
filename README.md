@@ -1,9 +1,19 @@
-# checkaivisible.com
+# CheckAIVisible
 
-> The only AI-visibility tool built for local restaurant owners.
-> See if ChatGPT and Gemini recommend your business when people search your category in your city.
+> **Who does AI actually recommend?** CheckAIVisible publishes which businesses
+> ChatGPT, Gemini and Perplexity recommend in each category — refreshed weekly, with
+> the source citations — plus a free tool that scores how ready any website is to be
+> read and cited by AI answer engines.
 
-**Status:** v1 in development. See [`Planning/v1-plan.md`](Planning/v1-plan.md) for the full plan.
+Two products, one engine:
+
+1. **Leaderboards** — for each category (e.g. *best CRM*, *best AI coding assistant*),
+   we ask ChatGPT, Gemini and Perplexity the same question five times a week,
+   canonicalize the businesses they name, and rank them by how often they appear.
+   Every mention keeps the citation the engine pointed to. **Placement is never for sale.**
+2. **AI-readiness checker** — enter a domain and get a deterministic on-page AEO / SEO /
+   GEO score across 7 pillars, the raw evidence, and a prioritized list of fixes. No LLM,
+   no account.
 
 ---
 
@@ -11,57 +21,89 @@
 
 ```
 apps/
-  web/    Next.js 15 frontend (deploys to Vercel)
-  api/    Hono backend + workers (deploys to Railway)
+  web/        Next.js 15 frontend (App Router)  → :3000
+  api/        Hono backend + scripts/pipelines   → :8787
 packages/
-  db/     Drizzle ORM schema (shared between api + scripts)
-Planning/
-  v1-plan.md             ← single source of truth
-  core-idea.md           ← original LLM-generated draft (do not trust)
-  design-research.md     ← original LLM-generated draft (do not trust)
+  db/         Drizzle ORM schema (all objects in the `cav1` Postgres schema)
+Planning/     Living design docs (see "Docs" below)
 ```
+
+## Stack
+
+- **Web:** Next.js 15 (App Router, server components), Tailwind v4, `motion/react`.
+- **API:** Hono (TypeScript), pluggable LLM engines (OpenAI, Gemini, Perplexity).
+- **DB:** Postgres + Drizzle, single `cav1` schema. **Push-based** (no migration history
+  for the core schema) plus a few idempotent direct-SQL setup scripts for staging tables.
+- **Payments (planned):** Dodo Payments (merchant-of-record; schema is provider-neutral).
 
 ## Quick start
 
 ```bash
-# 1. Install dependencies
 pnpm install
 
-# 2. Provision external services (see Planning/v1-plan.md §12)
-#    - Railway: create Postgres + Node service
-#    - Vercel: create project linked to apps/web
-#    - OpenAI, Gemini, Resend, Cloudflare Turnstile, Google Places: get API keys
+# 1. Postgres — create a database; everything lives in the `cav1` schema
+#    Local dev: postgresql://postgres@localhost:5432/checkaivisible
 
-# 3. Copy env example and fill in your keys
-cp .env.example apps/web/.env.local
+# 2. Env — copy the template and fill in keys (only DATABASE_URL + an engine key
+#    are needed to boot; the rest unlock paid/auth features later)
 cp .env.example apps/api/.env
+cp .env.example apps/web/.env.local   # set NEXT_PUBLIC_API_URL / API_URL → http://localhost:8787
 
-# 4. Push schema to your Postgres
-pnpm db:generate
-pnpm db:migrate
+# 3. Push the Drizzle schema (push-based; schemaFilter is ["cav1"])
+cd packages/db && DATABASE_URL=postgresql://postgres@localhost:5432/checkaivisible npx drizzle-kit push --force && cd ../..
 
-# 5. Run both dev servers (in separate terminals)
-pnpm dev:api    # → http://localhost:8787
-pnpm dev:web    # → http://localhost:3000
+# 4. Run both dev servers (separate terminals)
+pnpm dev:api    # Hono → http://localhost:8787   (needs DATABASE_URL in apps/api/.env)
+pnpm dev:web    # Next → http://localhost:3000
 ```
 
-## Scripts
+> **Note:** Postgres must be up before the API starts.
 
-| Command | Description |
+## API scripts & pipelines
+
+Run with `pnpm --filter @cav/api <script>`:
+
+| Script | What it does |
 |---|---|
-| `pnpm dev:web` | Next.js dev server (port 3000) |
-| `pnpm dev:api` | Hono dev server (port 8787) |
-| `pnpm build:web` | Production build of frontend |
-| `pnpm build:api` | Production build of backend |
-| `pnpm db:generate` | Generate SQL migrations from Drizzle schema |
-| `pnpm db:migrate` | Apply migrations to `DATABASE_URL` |
-| `pnpm db:studio` | Open Drizzle Studio (DB inspector) |
-| `pnpm typecheck` | Type-check all packages |
+| `seed` | Load sample ledgers into `categories` + `leaderboard_snapshots` |
+| `refresh <slug>` | Live weekly refresh of one category (real engine calls) |
+| `smoke "best CRM"` | One real call per engine (key check) |
+| `discover <cmd>` | Category auto-discovery & scheduler — `harvest \| probe \| promote \| auto-promote \| run-due \| schedule \| tick \| trend \| trend-detect \| trend-list \| trend-decay` |
+| `migrate:candidates` / `migrate:tiers` / `migrate:search` / `migrate:trends` | Idempotent direct-SQL setup for staging tables |
+| `tag:themes` | Backfill browse-by-group themes onto categories |
+| `audit-self [domain]` | Run our own AI-readiness engine on our own site (dogfooding → score 100) |
+
+The discovery → ranking → trend pipelines (what runs, what triggers them, and exactly
+where LLM calls happen) are mapped in **`Planning/pipelines-explained.md`**.
+
+## AEO / SEO
+
+The site is built to score **100 on its own AI-readiness engine**. Verify with:
+
+```bash
+pnpm --filter @cav/api audit-self localhost:3000   # against a local prod build
+pnpm --filter @cav/api audit-self checkaivisible.com
+```
 
 ## Deployment
 
-- **Frontend (`apps/web`)** → Vercel. Set root directory to `apps/web` in Vercel project settings.
-- **Backend (`apps/api`)** → Railway. Root directory `apps/api`. Build: `pnpm install && pnpm build`. Start: `node dist/index.js`.
-- **Database** → Railway Postgres add-on. `DATABASE_URL` is auto-injected.
+- **Web (`apps/web`)** → any Next.js host (e.g. Vercel). Serve over HTTPS (an HSTS
+  header is configured in `next.config.ts`). Set `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_API_URL`.
+- **API (`apps/api`)** → a Node host (e.g. Railway). Build `pnpm build`, start `node dist/index.js`.
+- **DB** → managed Postgres; set `DATABASE_URL`.
+- The category scheduler runs via `discover tick` (cron / scheduled job) in production.
 
-See [`Planning/v1-plan.md`](Planning/v1-plan.md) §6 for the full architecture rationale.
+## Docs
+
+Living design docs in `Planning/`:
+
+- `PROGRESS.md` — current build status (read first).
+- `pipelines-explained.md` — visual guide to every pipeline + where LLM calls happen.
+- `free-launch-plan.md` — what's left before the free launch + the paid/beta plan.
+- `category-discovery.md` — how categories get picked and automated.
+- `ai-readiness-audit-spec.md` — the checker's 7-pillar scoring spec.
+- `launch-monetization.md`, `dev-roadmap.md`, `marketing-product-details.md` — strategy.
+
+## License
+
+Proprietary — all rights reserved (unless stated otherwise).

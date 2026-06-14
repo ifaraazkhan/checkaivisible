@@ -17,6 +17,7 @@
     "migrate:search": "tsx src/scripts/migrate-search.ts",
     "migrate:trends": "tsx src/scripts/migrate-trends.ts",
     "tag:themes": "tsx src/scripts/tag-themes.ts",
+    "audit-self": "tsx src/scripts/audit-self.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

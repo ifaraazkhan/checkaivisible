@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Archivo, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteFooter, SiteHeader } from "@/components/site-shell";
+import { JsonLd } from "@/components/json-ld";
+import { graph, organizationLd, websiteLd } from "@/lib/structured-data";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://checkaivisible.com";
 
@@ -55,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="flex min-h-screen flex-col antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <JsonLd data={graph(organizationLd, websiteLd)} />
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />

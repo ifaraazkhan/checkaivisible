@@ -1,11 +1,81 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CheckerTerminal } from "@/components/ledger/checker-terminal";
+import { CheckScan } from "@/components/ledger/check-scan";
 import { HeroEngine } from "@/components/ledger/hero-engine";
 import { HomeLedger } from "@/components/ledger/home-ledger";
 import { MethodBlueprint } from "@/components/ledger/method-blueprint";
 import { Tape } from "@/components/ledger/tape";
 import { Button } from "@/components/ui/button";
+import { JsonLd } from "@/components/json-ld";
+import {
+  SITE_URL,
+  breadcrumbLd,
+  faqLd,
+  graph,
+  orgRef,
+  websiteRef,
+} from "@/lib/structured-data";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
+
+// Visible FAQ — the JSON-LD below is built from the SAME copy (schema must match
+// what the page shows). Question-shaped headings + a real FAQ are core AEO signals.
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "What is CheckAIVisible?",
+    a: "CheckAIVisible publishes which businesses ChatGPT, Gemini and Perplexity actually recommend in each category — like best CRM or best AI coding assistant — refreshed weekly with the source citations. It also offers a free AI-readiness checker that scores how well any website can be read and cited by AI answer engines.",
+  },
+  {
+    q: "How does CheckAIVisible rank businesses?",
+    a: "We ask each AI engine the category's question five times, canonicalize the businesses they name, and score each one by how often it appears across runs and engines. Every mention keeps the citation the engine pointed to, so each ranking is traceable.",
+  },
+  {
+    q: "Which AI engines do you check?",
+    a: "ChatGPT, Gemini and Perplexity — the three answer engines people most often ask for recommendations. Each is sampled five times per question, every refresh.",
+  },
+  {
+    q: "Is placement on a leaderboard for sale?",
+    a: "Never. A paid spot on a trust ranking would make the whole ledger worthless. Rankings are observations of public AI output and nothing else.",
+  },
+  {
+    q: "How often is the data refreshed?",
+    a: "On a cadence earned by volatility: fast-moving categories refresh every few days, stable ones less often, and trending topics get a same-week 'Hot' refresh.",
+  },
+  {
+    q: "What does the free AI-readiness checker measure?",
+    a: "It fetches your page the way an AI crawler does — raw HTML, no JavaScript — plus robots.txt, sitemap.xml and llms.txt, then scores seven pillars: crawlability, rendering, structured data, answer-engine optimization, trust and E-E-A-T, performance and SEO. You get an overall score, an AI sub-score and a prioritized list of fixes.",
+  },
+];
+
+const homepageLd = graph(
+  {
+    "@type": "WebPage",
+    "@id": `${SITE_URL}/#webpage`,
+    url: SITE_URL,
+    name: "CheckAIVisible — Who does AI actually recommend?",
+    description:
+      "Live leaderboards of which businesses ChatGPT, Gemini and Perplexity recommend per category, plus a free AI-readiness checker.",
+    isPartOf: websiteRef,
+    about: orgRef,
+    author: orgRef,
+    publisher: orgRef,
+    inLanguage: "en",
+  },
+  {
+    "@type": "SoftwareApplication",
+    name: "CheckAIVisible AI-Readiness Checker",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: `${SITE_URL}/#check`,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+  faqLd(FAQS),
+  breadcrumbLd([{ name: "Home", url: SITE_URL }]),
+);
 
 /*
   The homepage IS the product: stats strip, a tight headline, then the live
@@ -15,6 +85,7 @@ import { Button } from "@/components/ui/button";
 export default function HomePage() {
   return (
     <main className="overflow-hidden">
+      <JsonLd data={homepageLd} />
       <StatsBar />
       <Hero />
       <section className="mx-auto max-w-6xl px-6">
@@ -25,6 +96,7 @@ export default function HomePage() {
       </div>
       <Method />
       <Check />
+      <Faq />
       <Closing />
     </main>
   );
@@ -137,9 +209,60 @@ function Check() {
           Run the free scan — see how ready your site is to be read and cited by ChatGPT, Gemini
           and Perplexity, and exactly what&apos;s holding it back.
         </p>
-        <div className="mt-10 max-w-2xl">
+        <div className="mt-12 grid items-center gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
+          {/* left: the live instrument */}
           <CheckerTerminal />
+          {/* right: the same scan, drawn — url → score → per-engine read → projected rank */}
+          <div className="mx-auto w-full max-w-md lg:max-w-none">
+            <CheckScan />
+          </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- why it matters + FAQ (AEO surface) ---------- */
+function Faq() {
+  return (
+    <section id="faq" className="border-t border-border py-24 sm:py-28">
+      <div className="mx-auto max-w-3xl px-6">
+        <h2 className="font-display text-balance text-4xl sm:text-5xl">
+          Why AI visibility <em className="text-primary">matters</em>
+        </h2>
+        <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+          Search is shifting to AI.{" "}
+          <a
+            href="https://www.gartner.com/en/newsroom/press-releases/2024-02-19-gartner-predicts-search-engine-volume-will-drop-25-percent-by-2026-due-to-ai-chatbots-and-other-virtual-agents"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground/90 underline underline-offset-4 hover:text-foreground"
+          >
+            Gartner projects a 25% drop in traditional search-engine volume by 2026
+          </a>{" "}
+          as people turn to AI assistants for answers. That makes being recommended by
+          ChatGPT, Gemini and Perplexity as important as ranking on Google — and most sites
+          have no idea whether AI can even read them.
+        </p>
+
+        <blockquote className="mt-8 border-l-2 border-primary/60 pl-5 text-lg italic leading-relaxed text-foreground/90">
+          &ldquo;Placement is never for sale — a paid spot on a trust ranking would make the
+          whole ledger worthless.&rdquo;
+        </blockquote>
+
+        <h2 className="mt-16 font-display text-balance text-3xl sm:text-4xl">
+          Frequently asked questions
+        </h2>
+        <dl className="faq mt-8 divide-y divide-border border-t border-border">
+          {FAQS.map(({ q, a }) => (
+            <div key={q} className="py-6">
+              <dt>
+                <h3 className="text-lg font-medium tracking-tight text-foreground">{q}</h3>
+              </dt>
+              <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{a}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

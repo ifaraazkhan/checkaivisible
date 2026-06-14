@@ -27,6 +27,8 @@
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.52 0.14 155);
   --warning: oklch(0.6 0.13 75);
+  /* Deep score-green — as rich as the brand gold, but green for "good". */
+  --score: oklch(0.5 0.14 152);
   --border: oklch(0 0 0 / 9%);
   --input: oklch(0 0 0 / 12%);
   --ring: oklch(0.58 0.11 80 / 40%);
@@ -54,6 +56,8 @@
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.78 0.16 155);
   --warning: oklch(0.8 0.13 75);
+  /* Deep score-green — as rich as the brand gold, but green for "good". */
+  --score: oklch(0.64 0.15 152);
   --border: oklch(1 0 0 / 7%);
   --input: oklch(1 0 0 / 10%);
   --ring: oklch(0.78 0.09 85 / 40%);
@@ -80,6 +84,7 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-score: var(--score);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
