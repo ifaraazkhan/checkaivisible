@@ -1,16 +1,23 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+/* Wordmark-led logo: "Check AI Visible" with the AI in scarce gold. */
+function Wordmark({ className }: { className?: string }) {
+  return (
+    <span className={cn("font-semibold tracking-tight text-foreground", className)}>
+      Check<span className="text-primary">AI</span>Visible
+    </span>
+  );
+}
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/55">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <span className="font-mono text-[11px] font-bold">cv</span>
-          </span>
-          checkaivisible
+        <Link href="/" aria-label="CheckAIVisible — home">
+          <Wordmark className="text-[15px]" />
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm md:flex">
@@ -51,12 +58,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-primary text-primary-foreground">
-                <span className="font-mono text-[9px] font-bold">cv</span>
-              </span>
-              checkaivisible
-            </div>
+            <Wordmark className="text-sm" />
             <p className="mt-3 max-w-xs text-xs leading-relaxed text-muted-foreground">
               We ask ChatGPT, Gemini and Perplexity &ldquo;best X&rdquo; every week —
               and publish what they answer. Free, sourced, tracked over time.
