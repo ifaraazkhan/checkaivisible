@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { BetaInterest } from "@/components/beta-interest";
 import { CheckerTerminal } from "@/components/ledger/checker-terminal";
 import { CheckScan } from "@/components/ledger/check-scan";
 import { HeroEngine } from "@/components/ledger/hero-engine";
@@ -98,9 +99,21 @@ export default function HomePage() {
       </div>
       <Method />
       <Check />
+      <Beta />
       <Faq />
       <Closing />
     </main>
+  );
+}
+
+/* ---------- early-access / beta waitlist ---------- */
+function Beta() {
+  return (
+    <section className="border-t border-border py-24 sm:py-28">
+      <div className="mx-auto max-w-6xl px-6">
+        <BetaInterest source="beta_home" layout="card" />
+      </div>
+    </section>
   );
 }
 

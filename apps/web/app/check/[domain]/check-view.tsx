@@ -26,6 +26,7 @@ import {
   type SignalState,
 } from "@/lib/api";
 import { track } from "@/lib/analytics";
+import { BetaInterest } from "@/components/beta-interest";
 
 const POLL_MS = 1500;
 const MAX_WAIT_S = 90;
@@ -298,7 +299,7 @@ function Report({ report }: { report: ReadinessReport }) {
       </section>
 
       {/* Glimpse of the two paywalled features: rank + personalized AI agent */}
-      <PremiumFeatures aiScore={report.aiScore} />
+      <PremiumFeatures aiScore={report.aiScore} domain={report.domain} />
 
       {/* Entity presence honesty note */}
       <section className="rounded-lg border border-border bg-muted/30 p-5">
@@ -582,21 +583,24 @@ function FixPlanCta({ domain, issueCount }: { domain: string; issueCount: number
  * Personalized AI Fix Agent (generation, no score gate). Login/payment not wired —
  * these are awareness teasers in the free flow.
  */
-function PremiumFeatures({ aiScore }: { aiScore: number }) {
+function PremiumFeatures({ aiScore, domain }: { aiScore: number; domain: string }) {
   const rankEligible = aiScore >= 60;
   return (
-    <section>
+    <section className="relative isolate overflow-hidden rounded-2xl border border-primary/30 bg-primary/[0.04] p-6 sm:p-8">
+      <div className="gold-wash -z-10" aria-hidden />
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-lg font-semibold tracking-tight">Go deeper</h2>
-        <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          <Lock className="h-3 w-3" /> Coming soon
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          <Lock className="h-3 w-3" /> Coming soon · Beta
         </span>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Two ways to turn this audit into actual AI recommendations.
+      <h2 className="font-display mt-3 text-2xl tracking-tight sm:text-3xl">
+        Go deeper — turn this audit into <em className="text-primary">AI recommendations</em>
+      </h2>
+      <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+        Two ways we&apos;re building to take you from &ldquo;found the gaps&rdquo; to actually getting cited by AI.
       </p>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <PremiumCard
           icon={<BarChart3 className="h-5 w-5" />}
           title="AI Rank Check"
@@ -613,6 +617,11 @@ function PremiumFeatures({ aiScore }: { aiScore: number }) {
           desc="An AI agent reads your site and writes the exact fixes for it — your JSON-LD filled in, FAQ copy drafted, meta rewritten — plus a plan to climb the rankings."
           status={{ tone: "muted", text: "Included in a paid plan" }}
         />
+      </div>
+
+      {/* The waitlist capture — embedded so the teasers have a clear next step. */}
+      <div className="mt-7 border-t border-primary/20 pt-6">
+        <BetaInterest source="beta_report" layout="embedded" domain={domain} />
       </div>
     </section>
   );

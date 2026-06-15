@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BetaInterest } from "@/components/beta-interest";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +65,11 @@ export function SiteFooter() {
     <footer className="relative mt-16 border-t border-border">
       <div className="absolute inset-x-0 top-0 mx-auto h-px max-w-6xl bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       <div className="mx-auto max-w-6xl px-6 py-14">
+        {/* Early-access waitlist — a quiet, persistent capture across every page. */}
+        <div className="mb-12 flex flex-col gap-6 border-b border-border pb-12 sm:flex-row sm:items-center sm:justify-between">
+          <BetaInterest source="beta_footer" layout="footer" />
+        </div>
+
         <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
           <div>
             <Wordmark className="text-base" />

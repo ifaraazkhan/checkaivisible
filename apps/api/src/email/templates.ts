@@ -141,6 +141,47 @@ export function fixPlanEmail(a: FixPlanArgs): { subject: string; html: string; t
   };
 }
 
+/** Confirmation sent when someone joins the early-access / beta waitlist. */
+export function betaWelcomeEmail(): { subject: string; html: string; text: string } {
+  const benefits = [
+    ["Personalized AI fix agent", "writes the exact JSON-LD, FAQ copy and meta for your site — the code to paste, not just the to-do."],
+    ["Weekly domain tracking", "your AI Visibility Index, rankings and performance, watched and charted over time."],
+    ["Weekly fix digest", "an email with what changed and the highest-impact moves to climb in ChatGPT, Gemini & Perplexity."],
+  ];
+  const list = benefits
+    .map(
+      ([t, d]) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 10px;"><tr>
+        <td width="14" valign="top" style="color:${C.gold};font-family:${C.mono};font-weight:700;">·</td>
+        <td style="font-family:${C.sans};">
+          <span style="font-size:14px;font-weight:600;color:${C.ink};">${t}</span>
+          <span style="font-size:14px;color:${C.muted};"> — ${d}</span>
+        </td>
+      </tr></table>`,
+    )
+    .join("");
+
+  const inner = `
+    <h1 style="margin:0;font-size:20px;line-height:1.3;font-weight:700;color:${C.ink};">You're on the early-access list 🎉</h1>
+    <p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:${C.muted};">Thanks for joining the checkaivisible beta. Here's what you'll get first:</p>
+    <div style="margin-top:18px;">${list}</div>
+    <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:${C.muted};">We'll email you the moment it opens. In the meantime, keep an eye on your AI-readiness score — re-checks are free.</p>
+    ${button("https://checkaivisible.com", "Run another check")}`;
+
+  return {
+    subject: "You're on the checkaivisible early-access list",
+    html: shell(inner, `You're getting this because you joined the early-access waitlist on checkaivisible.`),
+    text: [
+      `You're on the checkaivisible early-access list 🎉`,
+      ``,
+      `What's coming:`,
+      ...benefits.map(([t, d]) => `· ${t} — ${d}`),
+      ``,
+      `We'll email you when it opens. Re-checks stay free: https://checkaivisible.com`,
+    ].join("\n"),
+  };
+}
+
 /** Internal heads-up to the founder when a new lead unlocks a fix plan. */
 export function leadNotifyEmail(a: { email: string; domain: string; score: number; tier: string }): {
   subject: string;
