@@ -45,8 +45,10 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// Dark is the brand default; honor a previously chosen light theme before paint.
-const themeInit = `try{if(localStorage.getItem("cav-theme")==="light")document.documentElement.classList.remove("dark")}catch(e){}`;
+// Auto by default: light during the day (6:00–17:59 local), dark at night.
+// An explicit choice ("light"/"dark") from the toggle always wins. Runs before
+// paint so there's no flash. <html> ships with `dark`, so we only remove it.
+const themeInit = `try{var p=localStorage.getItem("cav-theme"),h=new Date().getHours(),d=p==="dark"||(p!=="light"&&(h<6||h>=18));document.documentElement.classList.toggle("dark",d)}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -3,12 +3,44 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
+// Day = 06:00–17:59 local → light; otherwise dark. Mirrors the pre-paint
+// script in app/layout.tsx.
+function autoIsDark() {
+  const h = new Date().getHours();
+  return h < 6 || h >= 18;
+}
+
 export function ThemeToggle() {
-  // matches the server-rendered class; corrected on mount from localStorage
+  // matches the server-rendered class; corrected on mount
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
+    const root = document.documentElement;
+    setDark(root.classList.contains("dark"));
+
+    // While the user hasn't made an explicit choice, follow the clock so a tab
+    // left open across the day/night boundary flips on its own.
+    function syncAuto() {
+      let pref: string | null = null;
+      try {
+        pref = localStorage.getItem("cav-theme");
+      } catch {
+        // private mode etc. — treat as auto
+      }
+      if (pref === "light" || pref === "dark") return;
+      const next = autoIsDark();
+      root.classList.toggle("dark", next);
+      setDark(next);
+    }
+
+    const id = window.setInterval(syncAuto, 60_000);
+    document.addEventListener("visibilitychange", syncAuto);
+    window.addEventListener("focus", syncAuto);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", syncAuto);
+      window.removeEventListener("focus", syncAuto);
+    };
   }, []);
 
   function toggle() {
