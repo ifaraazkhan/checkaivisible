@@ -9,6 +9,8 @@ import { MethodBlueprint } from "@/components/ledger/method-blueprint";
 import { Tape } from "@/components/ledger/tape";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/json-ld";
+import { NEXT_REFRESH } from "@/lib/ledger-data";
+import { fetchLedgerIndex } from "@/lib/ledgers-source";
 import {
   SITE_URL,
   breadcrumbLd,
@@ -102,20 +104,27 @@ export default function HomePage() {
   );
 }
 
-/* ---------- stats strip (CoinMarketCap pattern) ---------- */
-const GLOBAL_STATS: { label: string; value: string; gold?: boolean }[] = [
-  { label: "Ledgers", value: "8 open · 60 at launch" },
-  { label: "Businesses tracked", value: "12,418" },
-  { label: "Engines", value: "3" },
-  { label: "Runs per prompt", value: "5×" },
-  { label: "Next run", value: "Mon 09:00 UTC", gold: true },
-];
+/* ---------- stats strip (CoinMarketCap pattern) ----------
+   Numbers are derived from the live API so nothing is fabricated — a trust product
+   can't ship invented counts. Falls back gracefully if the API is unreachable. */
+async function StatsBar() {
+  const index = await fetchLedgerIndex();
+  const ledgerCount = index.filter((l) => l.kind === "software").length;
+  const trendingCount = index.filter((l) => l.trending).length;
 
-function StatsBar() {
+  const stats: { label: string; value: string; gold?: boolean }[] = [
+    ...(ledgerCount > 0 ? [{ label: "Ledgers", value: String(ledgerCount) }] : []),
+    ...(trendingCount > 0 ? [{ label: "Trending now", value: String(trendingCount), gold: true }] : []),
+    { label: "Engines", value: "3" },
+    { label: "Samples", value: "5× per prompt" },
+    { label: "Refreshed", value: "weekly" },
+    { label: "Next run", value: NEXT_REFRESH, gold: true },
+  ];
+
   return (
     <div className="border-b border-border bg-card/40">
       <div className="mx-auto flex max-w-6xl items-center gap-x-6 gap-y-1 overflow-x-auto px-6 py-2 font-mono text-[11px] [scrollbar-width:none]">
-        {GLOBAL_STATS.map((s) => (
+        {stats.map((s) => (
           <span key={s.label} className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap">
             <span className="text-muted-foreground">{s.label}:</span>
             <span className={`tabular-nums ${s.gold ? "text-primary" : "text-foreground/90"}`}>{s.value}</span>

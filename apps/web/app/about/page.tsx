@@ -45,6 +45,17 @@ export default function AboutPage() {
           </li>
         </ul>
 
+        <h2 className="mt-12 font-display text-2xl sm:text-3xl">Who&rsquo;s behind it</h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          CheckAIVisible is built and written by{" "}
+          <strong className="text-foreground/90">Faraaz Khan</strong>, who also authors the{" "}
+          <Link href={"/blog" as const} className="text-foreground/90 underline underline-offset-4 hover:text-foreground">
+            guides on the blog
+          </Link>
+          . The aim is a transparent, independent record of how AI answer engines recommend
+          businesses &mdash; and practical, dogfooded advice on how to be one of them.
+        </p>
+
         <h2 className="mt-12 font-display text-2xl sm:text-3xl">Get in touch</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           Questions, corrections or press:{" "}

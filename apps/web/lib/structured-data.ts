@@ -41,6 +41,67 @@ export const websiteLd = {
 export const orgRef = { "@id": ORG_ID };
 export const websiteRef = { "@id": WEBSITE_ID };
 
+// Byline used on editorial content — a named author strengthens E-E-A-T (engines favor
+// content with a real, attributable person behind it).
+export const AUTHOR_NAME = "Faraaz Khan";
+export const authorLd = {
+  "@type": "Person",
+  name: AUTHOR_NAME,
+  url: `${SITE_URL}/about`,
+};
+
+// A BlogPosting node for an editorial article. Dates are ISO; image is absolute.
+export function articleLd(post: {
+  slug: string;
+  title: string;
+  description: string;
+  datePublished: string;
+  dateModified?: string;
+  image?: string;
+  keywords?: string[];
+}) {
+  const url = `${SITE_URL}/blog/${post.slug}`;
+  return {
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: post.title,
+    description: post.description,
+    url,
+    mainEntityOfPage: url,
+    datePublished: post.datePublished,
+    dateModified: post.dateModified ?? post.datePublished,
+    author: authorLd,
+    publisher: orgRef,
+    isPartOf: websiteRef,
+    inLanguage: "en",
+    image: post.image ?? `${SITE_URL}/icon.svg`,
+    ...(post.keywords?.length ? { keywords: post.keywords.join(", ") } : {}),
+  };
+}
+
+// A DefinedTerm node for a glossary entry — the programmatic-SEO surface. Each term
+// lives in a single DefinedTermSet (the glossary) so engines see a coherent vocabulary.
+export function definedTermLd(term: {
+  slug: string;
+  term: string;
+  definition: string;
+}) {
+  const url = `${SITE_URL}/glossary/${term.slug}`;
+  return {
+    "@type": "DefinedTerm",
+    "@id": `${url}#term`,
+    name: term.term,
+    description: term.definition,
+    url,
+    inDefinedTermSet: {
+      "@type": "DefinedTermSet",
+      "@id": `${SITE_URL}/glossary#set`,
+      name: "CheckAIVisible AEO & SEO Glossary",
+      url: `${SITE_URL}/glossary`,
+    },
+  };
+}
+
 // Wrap nodes in a single @graph document.
 export function graph(...nodes: Record<string, unknown>[]) {
   return { "@context": "https://schema.org", "@graph": nodes };

@@ -32,6 +32,7 @@ export function SiteHeader() {
             { label: "Ledgers", href: "/leaderboards" },
             { label: "Method", href: "/#method" },
             { label: "Check", href: "/#check" },
+            { label: "Blog", href: "/blog" },
           ].map((item) => (
             <Link
               key={item.label}
@@ -77,7 +78,8 @@ export function SiteFooter() {
             links={[
               { label: "All ledgers", href: "/leaderboards" },
               { label: "Check your visibility", href: "/#check" },
-              { label: "The method", href: "/#method" },
+              { label: "Blog", href: "/blog" },
+              { label: "AEO glossary", href: "/glossary" },
             ]}
           />
           <FooterCol
@@ -85,8 +87,8 @@ export function SiteFooter() {
             links={[
               { label: "Best CRM", href: "/best-crm" },
               { label: "Best AI coding tool", href: "/best-ai-coding-tool" },
-              { label: "Austin restaurants", href: "/austin/restaurants" },
-              { label: "NYC dentists", href: "/nyc/dentists" },
+              { label: "Best email marketing", href: "/best-email-marketing" },
+              { label: "Best project management", href: "/best-project-management" },
             ]}
           />
           <FooterCol

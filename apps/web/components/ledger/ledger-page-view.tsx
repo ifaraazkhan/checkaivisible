@@ -4,6 +4,14 @@ import { CategoryTabs } from "@/components/ledger/category-tabs";
 import { LedgerDetailTable } from "@/components/ledger/ledger-detail-table";
 import { Button } from "@/components/ui/button";
 import { LEDGER_UPDATED_AT, NEXT_REFRESH, type Ledger, type RankedEntry } from "@/lib/ledger-data";
+import { SITE_URL, breadcrumbLd, graph } from "@/lib/structured-data";
+
+// Join names into a natural-language list: "A", "A and B", "A, B and C".
+function listSentence(names: string[]): string {
+  if (names.length === 1) return names[0]!;
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
 
 /*
   The full-page ledger view shared by every category route. The table is the
@@ -11,24 +19,37 @@ import { LEDGER_UPDATED_AT, NEXT_REFRESH, type Ledger, type RankedEntry } from "
   live below the data, not above it. Entries come from the live API.
 */
 export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: RankedEntry[] }) {
+  const subject = ledger.title.toLowerCase().replace(/^best /, "");
+  // A single citable sentence — the direct answer an AI engine can lift verbatim.
+  const topNames = entries.slice(0, 3).map((e) => e.name);
+  const directAnswer =
+    topNames.length > 0
+      ? `As of ${LEDGER_UPDATED_AT}, ChatGPT, Gemini and Perplexity most often recommend ${listSentence(topNames)} for ${subject}.`
+      : null;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: `${ledger.title} — according to AI`,
-    description: `Which ${ledger.title.toLowerCase().replace(/^best /, "")} ChatGPT, Gemini and Perplexity actually recommend, sampled 5× weekly.`,
-    itemListOrder: "https://schema.org/ItemListOrderDescending",
-    numberOfItems: entries.length,
-    itemListElement: entries.map((entry) => ({
-      "@type": "ListItem",
-      position: entry.rank,
-      name: entry.name,
-    })),
-  };
+  const ld = graph(
+    {
+      "@type": "ItemList",
+      name: `${ledger.title} — according to AI`,
+      description: `Which ${subject} ChatGPT, Gemini and Perplexity actually recommend, sampled 5× weekly.`,
+      itemListOrder: "https://schema.org/ItemListOrderDescending",
+      numberOfItems: entries.length,
+      itemListElement: entries.map((entry) => ({
+        "@type": "ListItem",
+        position: entry.rank,
+        name: entry.name,
+      })),
+    },
+    breadcrumbLd([
+      { name: "Home", url: SITE_URL },
+      { name: "Ledgers", url: `${SITE_URL}/leaderboards` },
+      { name: ledger.title, url: `${SITE_URL}/${ledger.slug}` },
+    ]),
+  );
 
   return (
     <main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
       <CategoryTabs active={ledger.slug} />
 
       <div className="mx-auto max-w-[1440px] px-6 pb-24 pt-8 sm:pt-10">
@@ -47,6 +68,11 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
             updated {LEDGER_UPDATED_AT} · next run <span className="text-primary">{NEXT_REFRESH}</span>
           </span>
         </div>
+
+        {/* direct answer — the citable, lift-ready sentence (AEO) */}
+        {directAnswer && (
+          <p className="mt-4 max-w-3xl text-base leading-relaxed text-foreground/80">{directAnswer}</p>
+        )}
 
         {/* the ledger */}
         <div className="mt-8">
