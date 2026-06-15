@@ -18,7 +18,32 @@ import { detectSearchSpikes, recordSignals, runTrendLane, decayTrending, listSig
 
 const [cmd, ...rest] = process.argv.slice(2);
 
+// Mask a connection string for safe logging: keep scheme + host, hide creds.
+function maskUrl(url?: string): string {
+  if (!url) return "<unset>";
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.username ? "***:***@" : ""}${u.host}${u.pathname}`;
+  } catch {
+    return "<unparseable>";
+  }
+}
+
 async function main() {
+  const startedAt = Date.now();
+  console.log(`[discover] start cmd="${cmd ?? "<none>"}" args=[${rest.join(" ")}] cwd=${process.cwd()}`);
+  console.log(`[discover] DATABASE_URL=${maskUrl(process.env.DATABASE_URL)} node=${process.version}`);
+
+  // Fail fast & loud if the DB isn't reachable (the usual cron failure point).
+  try {
+    const { getDb, sql } = await import("@cav/db");
+    await getDb().execute(sql`select 1`);
+    console.log(`[discover] db connectivity OK (${Date.now() - startedAt}ms)`);
+  } catch (err) {
+    console.error(`[discover] DB CONNECT FAILED after ${Date.now() - startedAt}ms:`, (err as Error).message);
+    throw err;
+  }
+
   switch (cmd) {
     case "harvest": {
       const seeds = rest.length ? rest : DEFAULT_SEEDS;
@@ -139,9 +164,10 @@ async function main() {
       );
   }
   await closeDb();
+  console.log(`[discover] done cmd="${cmd ?? "<none>"}" in ${Date.now() - startedAt}ms`);
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error("[discover] FAILED:", err);
   process.exit(1);
 });
