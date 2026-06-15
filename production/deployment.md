@@ -91,14 +91,16 @@ Three **separate** Railway services in the same project (Railway cron is per-ser
   `railway ssh -s @cav/api "cd /app/apps/api && node_modules/.bin/tsx src/scripts/discover.ts <harvest|probe N|auto-promote|run-due>"`
 
 ### Cron debugging notes
+- **Cron env is SEPARATE from the API service.** Each cron service only inherits what you set on IT — adding keys to `@cav/api` does NOT propagate. The crons originally had only `DATABASE_URL`, so they crashed on the first LLM call (missing `OPENAI_API_KEY`/`GEMINI_API_KEY`/`GOOGLE_PLACES_API_KEY`/`NODE_ENV`). Fix: copy them from the API service: `api=$(railway variables -s @cav/api --json); railway variables -s <cron> --skip-deploys --set "OPENAI_API_KEY=$(echo "$api"|jq -r .OPENAI_API_KEY)" ...` (fixed 2026-06-16).
+- **Cron services are run-and-exit** → `railway ssh -s <cron>` returns "application is not running". Verify cron logic on the live `@cav/api` container instead (same image, same DB, copy the same keys): `railway ssh "cd /app/apps/api && node_modules/.bin/tsx src/scripts/discover.ts run-due"`.
 - **DB URL must be PRIVATE** (`${{Postgres.DATABASE_URL}}`). The public `*.proxy.rlwy.net` URL is NOT reachable from inside Railway → cron dies in ~900ms. Private connects in ~36ms in-container.
 - **Start command: no stray quotes.** A pasted ``sh -c "…`` with a missing closing quote = unterminated-string syntax error = instant ~900ms fail. Railway already runs start commands in a shell, so the plain `cd … && tsx …` form is correct (no `sh -c` needed).
 - **Cron RUN logs are not retrievable via `railway logs`** (only build logs). Diagnose with `railway run -s <svc> -- <cmd>` (local exec, remote env) or `railway ssh -s @cav/api "<cmd>"` (real container). The `/health` endpoint's `db` field is a quick remote DB-connectivity check.
 - The red **"Last run failed"** badge on a cron card is **stale** until the next *scheduled* run; manual redeploys don't update it. Use the **"Run now"** button in the Cron Runs tab to refresh it.
 
 ### Engine keys / data quality
-- `PERPLEXITY_API_KEY` not yet set on API/crons → Perplexity engine skipped. Add it for 3-engine consensus.
-- Gemini free tier = 20 req/day → `429 RESOURCE_EXHAUSTED`. A **paid Gemini key** was added 2026-06-15; verify crons no longer 429.
+- `PERPLEXITY_API_KEY` left blank **intentionally** — code skips Perplexity gracefully (`[refresh] skip perplexity`), never fails. Add only if 3-engine consensus is wanted.
+- **Gemini is still on the FREE tier** → `429 RESOURCE_EXHAUSTED` (limit 20/day). The current key resolves to a free-tier GCP project; enable billing on that project to stop throttling. The 429 is **caught and non-fatal** — it does not fail the cron, just reduces engine coverage for that run.
 
 ## Gotchas hit during this deploy (do not repeat)
 

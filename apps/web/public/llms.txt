@@ -9,7 +9,7 @@
 ## Main sections
 - [Home](https://checkaivisible.com/): What AI recommends, plus the free visibility checker.
 - [All leaderboards](https://checkaivisible.com/leaderboards): The full, searchable index of category ledgers, grouped by theme.
-- [Docs / method](https://checkaivisible.com/docs): How the rankings and the AI-readiness score are calculated.
+- [Method](https://checkaivisible.com/methodology): How the rankings and the AI-readiness score are calculated.
 
 ## Example leaderboards
 - [Best CRM](https://checkaivisible.com/best-crm)

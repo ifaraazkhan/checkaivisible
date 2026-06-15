@@ -5,6 +5,16 @@ const config: NextConfig = {
   experimental: {
     typedRoutes: true,
   },
+  // PostHog reverse proxy — events go to our own /ingest path so ad/tracker
+  // blockers (which blocklist *.i.posthog.com) don't silently drop analytics.
+  // US region; the client points api_host at "/ingest" (see analytics-provider).
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      { source: "/ingest/static/:path*", destination: "https://us-assets.i.posthog.com/static/:path*" },
+      { source: "/ingest/:path*", destination: "https://us.i.posthog.com/:path*" },
+    ];
+  },
   async headers() {
     return [
       {

@@ -47,6 +47,11 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
+  // Google Search Console HTML-tag verification. Set GOOGLE_SITE_VERIFICATION in
+  // the env (the token from GSC → "HTML tag" method). Omitted cleanly if unset.
+  verification: process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 // Auto by default: light during the day (6:00–17:59 local), dark at night.
