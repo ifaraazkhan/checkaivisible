@@ -145,36 +145,41 @@ check.post("/:domain/solution", async (c) => {
     return c.json({ error: "not_ready", message: "Run the check first." }, 404);
   }
 
-  await recordEmailLead(parsed.data.email, domain, "fix_unlock").catch((e) =>
-    console.error("[solution:lead]", e),
-  );
+  // Deduped: true only on the first unlock of this (email, domain). Re-fetches
+  // from localStorage auto-unlock / page refreshes return false → no dup email.
+  const isNewLead = await recordEmailLead(parsed.data.email, domain, "fix_unlock").catch((e) => {
+    console.error("[solution:lead]", e);
+    return false;
+  });
 
   const fixes = buildSolution(row.reportJson);
 
-  // Deliver the report + fix plan to the inbox, and ping the founder. Both are
-  // fire-and-forget: a mail hiccup must never block unlocking the fixes on-page.
+  // Deliver the report + fix plan to the inbox, and ping the founder — only on a
+  // new lead. Fire-and-forget: a mail hiccup must never block unlocking on-page.
   const report = row.reportJson as { score?: number; aiScore?: number; tier?: string };
   const score = report.score ?? 0;
   const aiScore = report.aiScore ?? 0;
   const tier = report.tier ?? "Needs work";
 
-  void (async () => {
-    const mail = fixPlanEmail({
-      domain,
-      score,
-      aiScore,
-      tier,
-      fixes: fixes.map((f) => ({ title: f.title, action: f.action })),
-      appUrl: APP_URL,
-    });
-    await sendEmail({ to: parsed.data.email, ...mail });
+  if (isNewLead) {
+    void (async () => {
+      const mail = fixPlanEmail({
+        domain,
+        score,
+        aiScore,
+        tier,
+        fixes: fixes.map((f) => ({ title: f.title, action: f.action })),
+        appUrl: APP_URL,
+      });
+      await sendEmail({ to: parsed.data.email, ...mail });
 
-    const notify = process.env.LEAD_NOTIFY_EMAIL;
-    if (notify) {
-      const n = leadNotifyEmail({ email: parsed.data.email, domain, score, tier });
-      await sendEmail({ to: notify, ...n });
-    }
-  })().catch((e) => console.error("[solution:email]", e));
+      const notify = process.env.LEAD_NOTIFY_EMAIL;
+      if (notify) {
+        const n = leadNotifyEmail({ email: parsed.data.email, domain, score, tier });
+        await sendEmail({ to: notify, ...n });
+      }
+    })().catch((e) => console.error("[solution:email]", e));
+  }
 
   return c.json({ domain, fixes });
 });

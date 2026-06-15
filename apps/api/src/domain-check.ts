@@ -102,14 +102,29 @@ export async function resetDomainCheckPending(id: string): Promise<void> {
 }
 
 /** Capture an email lead tied to the domain whose fix plan it unlocked. */
-export async function recordEmailLead(email: string, domain: string, source: string): Promise<void> {
+/**
+ * Records the lead, deduped on (email, domain, source). Returns true only when
+ * it's a genuinely new capture — so the caller sends the fix-plan email once per
+ * domain, not on every re-fetch (localStorage auto-unlock + page refreshes all
+ * re-hit /solution).
+ */
+export async function recordEmailLead(email: string, domain: string, source: string): Promise<boolean> {
   const db = getDb();
-  await db.insert(schema.emailCaptures).values({
-    email: email.toLowerCase().trim(),
-    domain,
-    source,
-    consentMarketing: true,
-  });
+  const clean = email.toLowerCase().trim();
+  const existing = await db
+    .select({ id: schema.emailCaptures.id })
+    .from(schema.emailCaptures)
+    .where(
+      and(
+        eq(schema.emailCaptures.email, clean),
+        eq(schema.emailCaptures.domain, domain),
+        eq(schema.emailCaptures.source, source),
+      ),
+    )
+    .limit(1);
+  if (existing.length > 0) return false;
+  await db.insert(schema.emailCaptures).values({ email: clean, domain, source, consentMarketing: true });
+  return true;
 }
 
 export async function recordCheckRequest(
