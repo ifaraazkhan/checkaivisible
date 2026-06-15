@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Check, Copy, Download, Loader2, Lock } from "lucide-react";
 import { getSolution, UNLOCK_KEY, type SolutionFix } from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 export function FixesView({ domain }: { domain: string }) {
   const [fixes, setFixes] = useState<SolutionFix[] | null>(null);
@@ -71,7 +72,13 @@ export function FixesView({ domain }: { domain: string }) {
           <Loader2 className="h-4 w-4 animate-spin" /> Loading your fix plan…
         </div>
       ) : (
-        <EmailGate onSubmit={unlock} error={error} />
+        <EmailGate
+          onSubmit={async (email) => {
+            await unlock(email);
+            track("email_unlocked", { domain }); // only reached on success — the lead
+          }}
+          error={error}
+        />
       )}
     </div>
   );

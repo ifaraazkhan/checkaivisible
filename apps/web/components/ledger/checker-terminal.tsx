@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { checkDomain } from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 /** Reduce any user input to a bare hostname for routing (server re-normalizes). */
 function toDomain(input: string): string {
@@ -34,6 +35,7 @@ export function CheckerTerminal() {
     try {
       const domain = toDomain(url);
       if (!domain) throw new Error("Enter a valid domain");
+      track("check_started", { domain });
       const normalized = /^https?:\/\//.test(url) ? url : `https://${url}`;
       await checkDomain({ url: normalized });
       router.push(`/check/${encodeURIComponent(domain)}`);

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -25,6 +25,7 @@ import {
   type Severity,
   type SignalState,
 } from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 const POLL_MS = 1500;
 const MAX_WAIT_S = 90;
@@ -39,18 +40,33 @@ export function CheckView({ domain }: { domain: string }) {
   const [error, setError] = useState<string | null>(null);
   const [timedOut, setTimedOut] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const reported = useRef(false);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
     const started = Date.now();
+    // Reset per-domain so SPA navigation between /check/a → /check/b re-fires.
+    reported.current = false;
 
     async function tick() {
       try {
         const res = await getDomainCheck(domain);
         if (cancelled) return;
         setData(res);
-        if (res.status === "done" || res.status === "failed") return;
+        if (res.status === "done" || res.status === "failed") {
+          if (!reported.current) {
+            reported.current = true;
+            track("check_completed", {
+              domain,
+              status: res.status,
+              score: res.report?.score,
+              aiScore: res.report?.aiScore,
+              tier: res.report?.tier,
+            });
+          }
+          return;
+        }
         if ((Date.now() - started) / 1000 > MAX_WAIT_S) {
           setTimedOut(true);
           return;
@@ -541,6 +557,7 @@ function FixPlanCta({ domain, issueCount }: { domain: string; issueCount: number
   return (
     <Link
       href={`/check/${encodeURIComponent(domain)}/fixes`}
+      onClick={() => track("fix_plan_clicked", { domain, issueCount })}
       className="group flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/5 p-5 transition-colors hover:bg-primary/10 sm:flex-row sm:items-center"
     >
       <div className="min-w-0 flex-1">
