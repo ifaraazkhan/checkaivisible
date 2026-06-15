@@ -11,6 +11,10 @@ import {
 } from "../domain-check.js";
 import { enqueueDomainCheck } from "../worker.js";
 import { buildSolution } from "../readiness/solution.js";
+import { sendEmail } from "../email/client.js";
+import { fixPlanEmail, leadNotifyEmail } from "../email/templates.js";
+
+const APP_URL = process.env.APP_URL ?? "https://checkaivisible.com";
 
 // A check older than this still stuck in pending/running means its worker died —
 // re-run it instead of leaving it pinned for the rest of the week.
@@ -145,5 +149,32 @@ check.post("/:domain/solution", async (c) => {
     console.error("[solution:lead]", e),
   );
 
-  return c.json({ domain, fixes: buildSolution(row.reportJson) });
+  const fixes = buildSolution(row.reportJson);
+
+  // Deliver the report + fix plan to the inbox, and ping the founder. Both are
+  // fire-and-forget: a mail hiccup must never block unlocking the fixes on-page.
+  const report = row.reportJson as { score?: number; aiScore?: number; tier?: string };
+  const score = report.score ?? 0;
+  const aiScore = report.aiScore ?? 0;
+  const tier = report.tier ?? "Needs work";
+
+  void (async () => {
+    const mail = fixPlanEmail({
+      domain,
+      score,
+      aiScore,
+      tier,
+      fixes: fixes.map((f) => ({ title: f.title, action: f.action })),
+      appUrl: APP_URL,
+    });
+    await sendEmail({ to: parsed.data.email, ...mail });
+
+    const notify = process.env.LEAD_NOTIFY_EMAIL;
+    if (notify) {
+      const n = leadNotifyEmail({ email: parsed.data.email, domain, score, tier });
+      await sendEmail({ to: notify, ...n });
+    }
+  })().catch((e) => console.error("[solution:email]", e));
+
+  return c.json({ domain, fixes });
 });
