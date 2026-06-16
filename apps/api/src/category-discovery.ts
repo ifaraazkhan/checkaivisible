@@ -1,4 +1,4 @@
-import { getDb, schema, eq, desc } from "@cav/db";
+import { getDb, schema, eq, desc, sql } from "@cav/db";
 import type { Platform } from "./types.js";
 import { SYSTEM_PROMPT } from "./llm/prompts.js";
 import { firstAvailableEngine } from "./llm/engines.js";
@@ -14,6 +14,15 @@ import { classifyTheme } from "./theme.js";
 
 export const MIN_BRANDS_TO_PROMOTE = 5;
 
+// A freshly-minted ledger must carry at least this many ranked businesses or it's
+// rolled back (no empty/thin ledger is ever left live). See mintLedger / promote.
+export const MIN_PUBLISH_ENTRIES = 5;
+
+// Two ledgers whose top-brand sets overlap by ≥ this are the SAME answer — only the
+// first survives (the distinctness gate). Heuristic Jaccard for now; RBO is the
+// principled upgrade (see Planning/ledger-strategy.md §3).
+export const DISTINCT_MAX_OVERLAP = 0.7;
+
 export type HarvestedCandidate = {
   slug: string;
   title: string;
@@ -23,21 +32,43 @@ export type HarvestedCandidate = {
 };
 
 // Default autocomplete seeds — broad commercial heads to expand into long-tail.
+// Deliberately spans every browse theme (see theme.ts THEMES) so autonomous growth is
+// never trapped in two or three domains. Bootstrap genesis list; the autonomous loop
+// (brand-graph + demand) widens it from here. See Planning/ledger-strategy.md §4.
 export const DEFAULT_SEEDS = [
-  "best crm",
-  "best ai tool",
-  "best email marketing",
-  "best project management",
-  "best note taking app",
-  "best accounting software",
-  "best website builder",
-  "best password manager",
-  "best vpn",
-  "best ai coding assistant",
-  "best analytics tool",
-  "best help desk software",
-  "best hr software",
-  "best marketing automation",
+  // Sales & CRM
+  "best crm", "best sales engagement platform", "best lead generation tool",
+  // Marketing
+  "best email marketing", "best marketing automation", "best seo tool",
+  "best social media management tool", "best landing page builder",
+  // Productivity
+  "best project management", "best note taking app", "best to do list app",
+  "best calendar app", "best website builder", "best time tracking software",
+  // Developer Tools
+  "best ai coding assistant", "best api testing tool", "best ci cd tool",
+  "best code editor", "best cloud hosting",
+  // AI & Data
+  "best ai tool", "best ai writing tool", "best ai image generator",
+  "best ai chatbot", "best business intelligence tool", "best analytics tool",
+  // Finance & Accounting
+  "best accounting software", "best invoicing software", "best payroll software",
+  "best budgeting app", "best expense management software",
+  // Design & Creative
+  "best graphic design software", "best video editing software", "best logo maker",
+  "best ui ux design tool", "best photo editing software",
+  // Security & Privacy
+  "best password manager", "best vpn", "best antivirus software",
+  "best identity theft protection",
+  // HR & People
+  "best hr software", "best applicant tracking system", "best employee engagement software",
+  // Customer Support
+  "best help desk software", "best live chat software", "best customer feedback tool",
+  // Commerce & Payments
+  "best ecommerce platform", "best payment gateway", "best subscription billing software",
+  // Communication
+  "best video conferencing software", "best team chat app", "best email client",
+  // IT & Operations
+  "best monitoring tool", "best backup software", "best endpoint management software",
 ];
 
 // ---- phrase helpers ----
@@ -54,6 +85,16 @@ export function slugify(phrase: string): string {
 const CATEGORY_TYPE_RE =
   /\b(software|tool|tools|app|apps|platform|platforms|service|services|solution|solutions|system|systems|suite|program|programs|online)\b/g;
 
+// Low-value query modifiers that must never spawn their own ledger: forum/source
+// suffixes ("…reddit"), bare years ("…2026"), "near me", and comparison operators
+// ("x vs y" — a separate intent, handled later). Used two ways: REJECT these at
+// harvest (asCategoryPhrase), and STRIP them in categoryKey so "best crm 2026"
+// collapses onto "best crm" for dedup. `_G` is the global variant for .replace();
+// the bare one is for .test() (a /g regex is stateful and unsafe to .test() with).
+const MODIFIER_SRC = "\\b(reddit|quora|youtube|github|medium|vs|versus|near me|20\\d\\d)\\b";
+const MODIFIER_RE = new RegExp(MODIFIER_SRC);
+const MODIFIER_RE_G = new RegExp(MODIFIER_SRC, "g");
+
 // A near-duplicate key for a category slug/phrase. Collapses the "best/top" prefix
 // and generic type nouns so "best-crm", "best-crm-software" and "best-crm-tools" map
 // to the same key — but keeps real qualifiers ("best-crm-for-real-estate" stays
@@ -63,6 +104,7 @@ export function categoryKey(slugOrPhrase: string): string {
     .toLowerCase()
     .replace(/-/g, " ")
     .replace(/\b(best|top|the)\b/g, " ")
+    .replace(MODIFIER_RE_G, " ")
     .replace(CATEGORY_TYPE_RE, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -80,6 +122,7 @@ export function toQuery(phrase: string): string {
 function asCategoryPhrase(raw: string): string | null {
   const phrase = raw.trim().toLowerCase().replace(/[?!.]+$/, "");
   if (!/\b(best|top)\b/.test(phrase)) return null;
+  if (MODIFIER_RE.test(phrase)) return null; // junk modifier (reddit / 2026 / vs / near me)
   const words = phrase.split(/\s+/);
   if (words.length < 2 || words.length > 7) return null;
   if (phrase.length < 6 || phrase.length > 60) return null;
@@ -313,7 +356,30 @@ export async function promote(slug: string): Promise<{ slug: string; businesses:
     });
 
   // Real first snapshot (5 runs × engines). Phase 2 will reuse the probe to save spend.
-  const res = await refreshCategory(cand.slug);
+  // A throw here (e.g. a network blip) must roll back the just-created row — never
+  // leave a half-built ledger live.
+  let res;
+  try {
+    res = await refreshCategory(cand.slug);
+  } catch (err) {
+    await deleteLedger(cand.slug).catch(() => {});
+    await db.update(schema.categoryCandidates).set({ status: "rejected" }).where(eq(schema.categoryCandidates.slug, cand.slug));
+    throw err;
+  }
+
+  // Publish gate — never leave a thin or duplicate ledger live. Roll it back (snapshots
+  // + mentions cascade on the FK delete) if the first refresh produced too few entries
+  // or its answer set duplicates an existing ledger.
+  if (res.businesses < MIN_PUBLISH_ENTRIES) {
+    await deleteLedger(cand.slug);
+    await db.update(schema.categoryCandidates).set({ status: "rejected" }).where(eq(schema.categoryCandidates.slug, cand.slug));
+    throw new Error(`publish gate: only ${res.businesses} entries (< ${MIN_PUBLISH_ENTRIES})`);
+  }
+  if (!(await isLedgerDistinct(cand.slug))) {
+    await deleteLedger(cand.slug);
+    await db.update(schema.categoryCandidates).set({ status: "rejected" }).where(eq(schema.categoryCandidates.slug, cand.slug));
+    throw new Error(`distinctness gate: answer set duplicates an existing ledger`);
+  }
 
   await db
     .update(schema.categoryCandidates)
@@ -321,6 +387,102 @@ export async function promote(slug: string): Promise<{ slug: string; businesses:
     .where(eq(schema.categoryCandidates.slug, cand.slug));
 
   return { slug: cand.slug, businesses: res.businesses };
+}
+
+// ---- gate helpers (shared by promote, autoPromote and the bootstrap) ----
+
+// Delete a ledger and everything hanging off it. leaderboard_snapshots and
+// business_mentions both FK categories.slug ON DELETE CASCADE, so one delete is enough.
+export async function deleteLedger(slug: string): Promise<void> {
+  await getDb().delete(schema.categories).where(eq(schema.categories.slug, slug));
+}
+
+// The canonical top-N brand set from a ledger's most recent snapshot.
+async function topBrandSet(slug: string, topN = 10): Promise<Set<string>> {
+  const db = getDb();
+  const [wk] = await db
+    .select({ w: sql<string | null>`max(${schema.leaderboardSnapshots.weekStart})` })
+    .from(schema.leaderboardSnapshots)
+    .where(eq(schema.leaderboardSnapshots.categorySlug, slug));
+  if (!wk?.w) return new Set();
+  const rows = await db
+    .select({ name: schema.leaderboardSnapshots.businessName, rank: schema.leaderboardSnapshots.rank })
+    .from(schema.leaderboardSnapshots)
+    .where(eq(schema.leaderboardSnapshots.categorySlug, slug));
+  return new Set(
+    rows
+      .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
+      .slice(0, topN)
+      .map((r) => canonicalKey(r.name))
+      .filter(Boolean),
+  );
+}
+
+// Distinctness gate: a new ledger earns existence only if its ranked answer differs
+// from every existing ledger. Returns false if any sibling's top-brand set overlaps
+// by ≥ DISTINCT_MAX_OVERLAP (Jaccard) — i.e. it's the same answer under a new title.
+export async function isLedgerDistinct(slug: string): Promise<boolean> {
+  const db = getDb();
+  const mine = await topBrandSet(slug);
+  if (mine.size === 0) return true; // nothing to compare yet
+  const others = await db.select({ slug: schema.categories.slug }).from(schema.categories);
+  for (const o of others) {
+    if (o.slug === slug) continue;
+    const theirs = await topBrandSet(o.slug);
+    if (theirs.size === 0) continue;
+    let inter = 0;
+    for (const x of mine) if (theirs.has(x)) inter++;
+    const union = new Set([...mine, ...theirs]).size;
+    if (union && inter / union >= DISTINCT_MAX_OVERLAP) return false;
+  }
+  return true;
+}
+
+// One-shot mint of a single "best X" phrase through every gate — used by the catalog
+// bootstrap. Mirrors promote() but works straight from a phrase (no candidate row):
+// dedup → answerability probe → mint + first refresh → publish + distinctness gate.
+// Returns the new slug, or a rejection reason (never leaves a half-built ledger).
+export async function mintLedger(
+  phrase: string,
+  opts: { trending?: boolean } = {},
+): Promise<{ slug: string; businesses: number } | { rejected: string }> {
+  const db = getDb();
+  const slug = slugify(phrase);
+  if (!slug) return { rejected: "bad-slug" };
+
+  const live = await db.select({ slug: schema.categories.slug }).from(schema.categories);
+  const key = categoryKey(slug);
+  if (live.some((c) => c.slug === slug || categoryKey(c.slug) === key)) return { rejected: "duplicate" };
+
+  const probe = await probeQuery(toQuery(phrase));
+  if (!probe) return { rejected: "no-engine-or-cap" };
+  if (probe.brands < MIN_BRANDS_TO_PROMOTE) return { rejected: `only ${probe.brands} brands` };
+
+  const title = titleCase(phrase);
+  const query = toQuery(phrase);
+  const theme = await classifyTheme(title, query, slug);
+  await db
+    .insert(schema.categories)
+    .values({ slug, title, query, kind: "software", theme, ...(opts.trending ? { trending: true, tier: "S" } : {}) })
+    .onConflictDoUpdate({ target: schema.categories.slug, set: { title, query, theme } });
+
+  // From here the row exists — ANY failure (incl. a network blip mid-refresh) must
+  // roll it back so a half-built empty ledger never survives.
+  try {
+    const res = await refreshCategory(slug);
+    if (res.businesses < MIN_PUBLISH_ENTRIES) {
+      await deleteLedger(slug);
+      return { rejected: `publish-gate (${res.businesses} entries)` };
+    }
+    if (!(await isLedgerDistinct(slug))) {
+      await deleteLedger(slug);
+      return { rejected: "not-distinct" };
+    }
+    return { slug, businesses: res.businesses };
+  } catch (err) {
+    await deleteLedger(slug).catch(() => {});
+    return { rejected: `error: ${(err as Error).message}` };
+  }
 }
 
 export type CandidateRow = typeof schema.categoryCandidates.$inferSelect;

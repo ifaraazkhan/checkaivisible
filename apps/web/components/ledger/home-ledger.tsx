@@ -15,6 +15,10 @@ import {
   type LedgerIndexItem,
 } from "@/lib/ledgers-source";
 
+// Cap the homepage tab strip so it stays scannable as the catalog grows past ~50
+// ledgers; the rest live on /leaderboards (linked via "view more" below the strip).
+const MAX_HOME_TABS = 50;
+
 /*
   The product, on the homepage, above the fold. Tabs switch categories in place;
   every category still has its own indexable URL. Data is live from the API.
@@ -62,7 +66,7 @@ export function HomeLedger() {
         aria-label="Ledger categories"
         className="flex items-center gap-1.5 overflow-x-auto border-b border-border px-4 py-3 [scrollbar-width:none] sm:px-5"
       >
-        {index.map((l) => {
+        {index.slice(0, MAX_HOME_TABS).map((l) => {
           const isActive = l.slug === active;
           return (
             <button
@@ -81,8 +85,16 @@ export function HomeLedger() {
             </button>
           );
         })}
-        <span className="ml-1 shrink-0 border-l border-border pl-3">
+        <span className="ml-1 flex shrink-0 items-center gap-3 border-l border-border pl-3">
           <SuggestCategory source="home" />
+          {index.length > MAX_HOME_TABS && (
+            <Link
+              href={"/leaderboards" as const}
+              className="inline-flex items-center gap-1 whitespace-nowrap font-mono text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              view more <ArrowRight className="h-3 w-3" />
+            </Link>
+          )}
         </span>
       </div>
 

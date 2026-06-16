@@ -89,14 +89,13 @@ export function startScheduler(): void {
   // No harvest on boot so frequent redeploys don't repeatedly spend on catalog growth.
   setTimeout(() => void runExclusive("boot", () => runFullTick({ trend: true })), 60 * 1000);
 
-  // Every 3h: trend + decay + probe + auto-promote + run-due (old cron-trends/cron-refresh).
-  setInterval(() => void runExclusive("scheduled-3h", () => runFullTick({ trend: true })), 3 * HOUR);
-
-  // Daily: include a harvest to grow the catalog (old cron-catalog).
+  // Once a day: the full autonomous pass — harvest → trend → probe → auto-promote →
+  // run-due refresh. A single daily run (was every 3h) keeps spend predictable; the
+  // tier cadence + nextRunAt still decide which ledgers actually re-rank each day.
   setInterval(
     () => void runExclusive("scheduled-daily", () => runFullTick({ harvest: true, trend: true })),
     24 * HOUR,
   );
 
-  console.log("[scheduler] started — boot pass in 60s, then trend/refresh every 3h, harvest daily");
+  console.log("[scheduler] started — boot pass in 60s, then one full pass every 24h");
 }
