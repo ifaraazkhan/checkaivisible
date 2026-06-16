@@ -241,3 +241,21 @@ export async function captureEmail(input: {
     throw new Error(body?.message ?? body?.error ?? `HTTP ${res.status}`);
   }
 }
+
+/** Vote for a category to be ranked next. Returns the running vote count. */
+export async function suggestCategory(input: {
+  category: string;
+  email: string;
+  source?: string;
+}): Promise<{ slug: string; votes: number }> {
+  const res = await fetch(`${API_URL}/suggestions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.message ?? body?.error ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}

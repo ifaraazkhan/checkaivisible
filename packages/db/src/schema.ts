@@ -154,6 +154,28 @@ export const emailCaptures = cav1.table(
   }),
 );
 
+// Visitor-submitted "rank this next" requests from the category-tab CTA. Built
+// vote-ready: one row per (slug, email) so demand = COUNT(*) GROUP BY slug, which
+// is exactly what the post-beta public poll will read with no migration. Created
+// via direct SQL (DB is push-built; do NOT drizzle generate/migrate). See
+// migrate-suggestions.ts.
+export const categorySuggestions = cav1.table(
+  "category_suggestions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull(), // normalized key the vote count groups on
+    label: text("label").notNull(), // what the visitor actually typed
+    email: text("email").notNull(),
+    source: text("source"), // where the chip was clicked (home | ledger:<slug>)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    // one vote per email per category; lets us upsert/ignore duplicates
+    voteUnique: unique("category_suggestions_slug_email_uq").on(t.slug, t.email),
+    slugIdx: index("category_suggestions_slug_idx").on(t.slug),
+  }),
+);
+
 export const leaderboardRank = cav1.table(
   "leaderboard_rank",
   {

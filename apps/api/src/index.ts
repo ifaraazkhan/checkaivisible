@@ -9,6 +9,7 @@ import { leaderboard } from "./routes/leaderboard.js";
 import { ledgers } from "./routes/ledgers.js";
 import { check } from "./routes/check.js";
 import { email } from "./routes/email.js";
+import { suggestions } from "./routes/suggestions.js";
 import { internal } from "./routes/internal.js";
 import { startWorker } from "./worker.js";
 import { startScheduler } from "./scheduler.js";
@@ -30,6 +31,7 @@ app.route("/leaderboard", leaderboard);
 app.route("/ledgers", ledgers);
 app.route("/check", check);
 app.route("/email", email);
+app.route("/suggestions", suggestions);
 app.route("/internal", internal);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));

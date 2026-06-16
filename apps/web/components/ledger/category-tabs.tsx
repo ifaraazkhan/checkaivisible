@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchLedgerIndex } from "@/lib/ledgers-source";
+import { SuggestCategory } from "./suggest-category";
 
 /*
   The "tabs" are real links — every ledger is its own indexable URL; Next.js
@@ -29,8 +30,8 @@ export async function CategoryTabs({ active }: { active?: string }) {
             </Link>
           );
         })}
-        <span className="shrink-0 px-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          +52 at launch
+        <span className="ml-1 shrink-0">
+          <SuggestCategory source="leaderboards" />
         </span>
       </div>
     </nav>

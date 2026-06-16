@@ -16,6 +16,7 @@
     "migrate:tiers": "tsx src/scripts/migrate-tiers.ts",
     "migrate:search": "tsx src/scripts/migrate-search.ts",
     "migrate:trends": "tsx src/scripts/migrate-trends.ts",
+    "migrate:suggestions": "tsx src/scripts/migrate-suggestions.ts",
     "tag:themes": "tsx src/scripts/tag-themes.ts",
     "audit-self": "tsx src/scripts/audit-self.ts",
     "typecheck": "tsc --noEmit"

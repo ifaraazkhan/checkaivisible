@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { LedgerTable } from "@/components/ledger/ledger-table";
 import { BusinessDetail } from "@/components/ledger/business-detail";
+import { SuggestCategory } from "@/components/ledger/suggest-category";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LEDGER_UPDATED_AT, NEXT_REFRESH, type RankedEntry } from "@/lib/ledger-data";
@@ -80,8 +81,8 @@ export function HomeLedger() {
             </button>
           );
         })}
-        <span className="ml-1 shrink-0 border-l border-border pl-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground/70">
-          +52 at launch
+        <span className="ml-1 shrink-0 border-l border-border pl-3">
+          <SuggestCategory source="home" />
         </span>
       </div>
 
