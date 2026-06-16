@@ -125,15 +125,26 @@ export function MethodBlueprint() {
         ~20 prompts per category
       </motion.text>
 
-      {/* ---- annotation: re-run weekly (circular arrow, bottom) ---- */}
+      {/* ---- annotation: re-run weekly (refresh circular arrow, bottom) ---- */}
       <motion.path
-        d="M 360 395 A 14 14 0 1 1 374 410"
+        d="M 367 394 A 11 11 0 1 1 356 405"
         stroke="currentColor"
         className="text-primary/80"
         strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
         variants={draw(2.0)}
       />
-      <motion.path d="M 370 403 L 375 411 L 366 412" stroke="currentColor" className="text-primary/80" strokeWidth="1.5" fill="none" variants={draw(2.4)} />
+      <motion.path
+        d="M 352.5 404 L 356 400 L 359.5 404"
+        stroke="currentColor"
+        className="text-primary/80"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        variants={draw(2.4)}
+      />
       <motion.text x="392" y="408" fontSize="11" fontFamily="var(--font-mono)" className="fill-foreground/80" variants={fade(2.5)}>
         re-run weekly · deltas archived &amp; public
       </motion.text>
