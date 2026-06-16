@@ -100,7 +100,7 @@ Three **separate** Railway services in the same project (Railway cron is per-ser
 
 ### Engine keys / data quality
 - `PERPLEXITY_API_KEY` left blank **intentionally** — code skips Perplexity gracefully (`[refresh] skip perplexity`), never fails. Add only if 3-engine consensus is wanted.
-- **Gemini is still on the FREE tier** → `429 RESOURCE_EXHAUSTED` (limit 20/day). The current key resolves to a free-tier GCP project; enable billing on that project to stop throttling. The 429 is **caught and non-fatal** — it does not fail the cron, just reduces engine coverage for that run.
+- **Gemini key is PAID and working** (verified 2026-06-16: live call returns `HTTP 200`, `"serviceTier":"standard"`). Earlier `429 RESOURCE_EXHAUSTED` entries in logs were historical, from before billing took effect. If 429s recur, the request is being counted against `…-FreeTier` → the API key in use belongs to a GCP project without billing; confirm the key's project = the billed project. The 429 is **caught and non-fatal** either way (doesn't fail the cron, just drops that engine for the run).
 
 ## Gotchas hit during this deploy (do not repeat)
 

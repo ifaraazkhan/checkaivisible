@@ -10,6 +10,7 @@ import { ledgers } from "./routes/ledgers.js";
 import { check } from "./routes/check.js";
 import { email } from "./routes/email.js";
 import { startWorker } from "./worker.js";
+import { startScheduler } from "./scheduler.js";
 
 const app = new Hono();
 
@@ -41,11 +42,14 @@ serve({ fetch: app.fetch, port }, (info) => {
   console.log(`[api] listening on http://localhost:${info.port}`);
 });
 
-// Start the audit worker. Skips silently if DATABASE_URL isn't set (dev w/o DB).
+// Start the audit worker + in-process discovery scheduler.
+// Skips silently if DATABASE_URL isn't set (dev w/o DB).
 if (process.env.DATABASE_URL) {
   startWorker().catch((err) => {
     console.error("[worker] failed to start", err);
   });
+  // Replaces the old Railway cron-refresh / cron-trends / cron-catalog services.
+  startScheduler();
 } else {
-  console.warn("[worker] DATABASE_URL not set — worker disabled");
+  console.warn("[worker] DATABASE_URL not set — worker + scheduler disabled");
 }
