@@ -3,17 +3,11 @@ import { getDb, schema, and, eq, gt } from "@cav/db";
 import type { Category, LlmResponse, MentionResult, Platform } from "./types.js";
 import { PLATFORMS } from "./types.js";
 import { generatePrompts } from "./queries.js";
-import { queryChatGPT } from "./llm/openai.js";
-import { queryGemini } from "./llm/gemini.js";
-import { queryPerplexity } from "./llm/perplexity.js";
+import { ENGINE_BY_PLATFORM } from "./llm/engines.js";
 import { extractMentions } from "./llm/parse.js";
 
-// Dispatch table — one entry per engine so adding an engine is a single line.
-const ENGINE: Record<Platform, (prompt: string) => Promise<LlmResponse>> = {
-  chatgpt: queryChatGPT,
-  gemini: queryGemini,
-  perplexity: queryPerplexity,
-};
+// Dispatch table — the shared resilience-wrapped engines, keyed by platform.
+const ENGINE: Record<Platform, (prompt: string) => Promise<LlmResponse>> = ENGINE_BY_PLATFORM;
 import { detectMention } from "./mention.js";
 import { computeScore } from "./score.js";
 import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";

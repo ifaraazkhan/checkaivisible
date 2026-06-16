@@ -33,3 +33,10 @@ export const ENGINES: { platform: Platform; env: string; fn: EngineFn }[] = [
 export function firstAvailableEngine() {
   return ENGINES.find((e) => process.env[e.env]) ?? null;
 }
+
+// Per-platform dispatch of the SAME resilience-wrapped fns (for callers that key by
+// platform, e.g. the audit worker). Keeps every production engine call going through
+// withResilience.
+export const ENGINE_BY_PLATFORM: Record<Platform, EngineFn> = Object.fromEntries(
+  ENGINES.map((e) => [e.platform, e.fn]),
+) as Record<Platform, EngineFn>;

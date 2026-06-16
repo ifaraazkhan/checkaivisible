@@ -1,9 +1,7 @@
 import { getDb, schema, and, eq } from "@cav/db";
 import type { Platform } from "./types.js";
-import { queryChatGPT } from "./llm/openai.js";
-import { queryGemini } from "./llm/gemini.js";
-import { queryPerplexity } from "./llm/perplexity.js";
-import { sampleEngine, aggregateRuns, type EngineFn } from "./sample.js";
+import { ENGINES } from "./llm/engines.js";
+import { sampleEngine, aggregateRuns } from "./sample.js";
 import { canonicalKey, DisplayPicker } from "./canonical.js";
 import { rankLedger, type LedgerEntryInput } from "./ledger-rank.js";
 import { currentWeekStart } from "./domain-check.js";
@@ -12,12 +10,10 @@ import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
 // Weekly leaderboard refresh for one category: run each engine 5×, persist every
 // per-run mention (business_mentions), then roll up canonicalized appearance
 // counts into leaderboard_snapshots. Engines without a key are skipped.
-
-const ENGINES: { platform: Platform; env: string; fn: EngineFn }[] = [
-  { platform: "chatgpt", env: "OPENAI_API_KEY", fn: queryChatGPT },
-  { platform: "gemini", env: "GEMINI_API_KEY", fn: queryGemini },
-  { platform: "perplexity", env: "PERPLEXITY_API_KEY", fn: queryPerplexity },
-];
+//
+// Uses the shared ENGINES registry, whose fns are wrapped with withResilience
+// (timeout + 429 retry/backoff + per-engine throttle) so a Gemini rate limit
+// self-heals instead of dropping that engine from the ledger for the run.
 
 type Agg = {
   picker: DisplayPicker;
