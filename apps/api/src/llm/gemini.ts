@@ -10,7 +10,9 @@ function getClient(): GoogleGenAI {
   if (!client) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("GEMINI_API_KEY missing");
-    client = new GoogleGenAI({ apiKey });
+    // httpOptions.timeout is in milliseconds; retry/backoff for 429s is handled by
+    // the withResilience wrapper in engines.ts (the SDK doesn't auto-retry 429).
+    client = new GoogleGenAI({ apiKey, httpOptions: { timeout: 120_000 } });
   }
   return client;
 }

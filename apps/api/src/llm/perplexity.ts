@@ -11,7 +11,7 @@ function getClient(): OpenAI {
   if (!client) {
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey) throw new Error("PERPLEXITY_API_KEY missing");
-    client = new OpenAI({ apiKey, baseURL: "https://api.perplexity.ai" });
+    client = new OpenAI({ apiKey, baseURL: "https://api.perplexity.ai", maxRetries: 4, timeout: 120_000 });
   }
   return client;
 }

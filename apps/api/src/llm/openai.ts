@@ -10,7 +10,9 @@ function getClient(): OpenAI {
   if (!client) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("OPENAI_API_KEY missing");
-    client = new OpenAI({ apiKey });
+    // SDK-level resilience (the OpenAI SDK auto-retries 429/5xx with backoff and
+    // respects Retry-After); our withResilience wrapper is a second layer on top.
+    client = new OpenAI({ apiKey, maxRetries: 4, timeout: 120_000 });
   }
   return client;
 }
