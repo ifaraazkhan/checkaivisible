@@ -47,6 +47,7 @@ RESEND_FROM_EMAIL=hello@checkaivisible.com
 AUDIT_DOMAIN=checkaivisible.com
 DAILY_SPEND_CAP_CENTS=500
 MAX_AUDITS_PER_IP_PER_DAY=5
+ADMIN_KEY=...          # secret for /internal/* manual trigger routes (fail-closed if unset)
 ```
 
 ## Vercel (frontend) config
@@ -75,28 +76,56 @@ NEXT_PUBLIC_SITE_URL=https://checkaivisible.com
 - Result: `cav1` schema with 21 tables. DB starts **empty by design** — the discovery scheduler populates ledgers (never self-seed ranked ledgers).
 - Run migrations from a laptop using Railway's **public** proxy URL (Postgres → Connect → Public Network). Inside Railway, always use the `${{Postgres.DATABASE_URL}}` reference.
 
-## Cron services (Railway)
+## Scheduling — in-process (NOT Railway cron)
 
-Three **separate** Railway services in the same project (Railway cron is per-service; each must run-and-exit). All share the same Dockerfile image. Each needs `DATABASE_URL=${{Postgres.DATABASE_URL}}` (PRIVATE) + the LLM/Places keys + `NODE_ENV=production`. No `PORT`, no public domain.
+**As of 2026-06-16 the 3 separate Railway cron services were DELETED.** Scheduling now runs
+**inside the always-on API process** (`startScheduler()` in `apps/api/src/scheduler.ts`, wired from
+`apps/api/src/index.ts`). The API never sleeps (`sleepApplication=false`, `numReplicas=1`) and already
+holds all the LLM/DB keys, so this is one service, one env, and logs are visible in `railway logs`.
 
-| Service | Cron schedule | Start command |
+Why we moved off Railway cron: the 3 cron services were fragile run-and-exit jobs with a separate env
+from the API (keys had to be duplicated onto each), and their **run logs are not retrievable via the
+CLI** — making failures invisible. See git history (`feat(api): in-process discovery scheduler`).
+
+### Cadence
+| When | Pass | Covers |
 |---|---|---|
-| `cron-refresh` | `0 */6 * * *` | `cd /app/apps/api && node_modules/.bin/tsx src/scripts/discover.ts run-due` |
-| `cron-trends` | `0 */3 * * *` | `cd apps/api && node_modules/.bin/tsx src/scripts/discover.ts trend` |
-| `cron-catalog` | `0 3 * * *` | `cd apps/api && node_modules/.bin/tsx src/scripts/discover.ts harvest && node_modules/.bin/tsx src/scripts/discover.ts probe 10 && node_modules/.bin/tsx src/scripts/discover.ts auto-promote && node_modules/.bin/tsx src/scripts/discover.ts trend-decay` |
+| ~60s after each deploy | `boot` | trend + decay + probe + auto-promote + run-due (no harvest) |
+| every 3h | `scheduled-3h` | same as boot |
+| every 24h | `scheduled-daily` | adds `harvest` to grow the catalog |
 
-- Pipeline: `cron-catalog` grows the catalog (new ledgers), `cron-refresh` re-ranks existing ones, `cron-trends` mints trending ledgers. Fully autonomous — no manual runs needed.
-- A ledger only appears in `/ledgers` once it's harvested → probed → **auto-promoted** (becomes a `categories` row) → refreshed (writes `leaderboard_snapshots`).
-- To populate immediately instead of waiting: SSH the API container and run the steps:
-  `railway ssh -s @cav/api "cd /app/apps/api && node_modules/.bin/tsx src/scripts/discover.ts <harvest|probe N|auto-promote|run-due>"`
+- `run-due` only refreshes ledgers whose persisted `nextRunAt` is past, so a restart never double-runs
+  or skips a refresh — only the in-memory 3h/24h cadence resets (harmless).
+- A shared **mutex** (`runExclusive`) means a scheduled pass and a manual trigger can never overlap.
+- A full pass takes ~4–5 min (deliberately throttled — see resilience below); that's expected/fine.
+- A ledger appears in `/ledgers` once it's harvested → probed → **auto-promoted** (`categories` row) →
+  refreshed (writes `leaderboard_snapshots`).
 
-### Cron debugging notes
-- **Cron env is SEPARATE from the API service.** Each cron service only inherits what you set on IT — adding keys to `@cav/api` does NOT propagate. The crons originally had only `DATABASE_URL`, so they crashed on the first LLM call (missing `OPENAI_API_KEY`/`GEMINI_API_KEY`/`GOOGLE_PLACES_API_KEY`/`NODE_ENV`). Fix: copy them from the API service: `api=$(railway variables -s @cav/api --json); railway variables -s <cron> --skip-deploys --set "OPENAI_API_KEY=$(echo "$api"|jq -r .OPENAI_API_KEY)" ...` (fixed 2026-06-16).
-- **Cron services are run-and-exit** → `railway ssh -s <cron>` returns "application is not running". Verify cron logic on the live `@cav/api` container instead (same image, same DB, copy the same keys): `railway ssh "cd /app/apps/api && node_modules/.bin/tsx src/scripts/discover.ts run-due"`.
-- **DB URL must be PRIVATE** (`${{Postgres.DATABASE_URL}}`). The public `*.proxy.rlwy.net` URL is NOT reachable from inside Railway → cron dies in ~900ms. Private connects in ~36ms in-container.
-- **Start command: no stray quotes.** A pasted ``sh -c "…`` with a missing closing quote = unterminated-string syntax error = instant ~900ms fail. Railway already runs start commands in a shell, so the plain `cd … && tsx …` form is correct (no `sh -c` needed).
-- **Cron RUN logs are not retrievable via `railway logs`** (only build logs). Diagnose with `railway run -s <svc> -- <cmd>` (local exec, remote env) or `railway ssh -s @cav/api "<cmd>"` (real container). The `/health` endpoint's `db` field is a quick remote DB-connectivity check.
-- The red **"Last run failed"** badge on a cron card is **stale** until the next *scheduled* run; manual redeploys don't update it. Use the **"Run now"** button in the Cron Runs tab to refresh it.
+### Manual trigger routes (`/internal/*`)
+Protected by a shared secret: header `x-admin-key: $ADMIN_KEY` **or** `?key=$ADMIN_KEY` query param.
+`ADMIN_KEY` is set on the `@cav/api` Railway service. Fail-closed: if `ADMIN_KEY` is unset the routes
+return 503. Tasks are **fire-and-forget** (return `202 started`, run in background — watch `railway logs`
+for `[scheduler]` / `[task:*]`). `409 busy` if a pass is already running. Add `?wait=1` to block.
+
+| Route (GET or POST) | Equivalent old cron |
+|---|---|
+| `/internal/refresh` | cron-refresh (`run-due`) |
+| `/internal/trend` | cron-trends (`trend` + decay) |
+| `/internal/catalog` | cron-catalog (`harvest`→`probe`→`auto-promote`→`decay`) |
+| `/internal/tick` | full pass (everything incl. harvest) |
+| `/internal/status` (GET) | `{ busy, lastLabel, lastStartedAt }` |
+
+Example: `curl "https://api.checkaivisible.com/internal/catalog?key=$ADMIN_KEY"`
+
+The CLI `discover.ts` script (`tsx src/scripts/discover.ts <cmd>`) still exists for ad-hoc runs via
+`railway ssh "cd /app/apps/api && node_modules/.bin/tsx src/scripts/discover.ts <cmd>"`.
+
+### LLM rate-limit resilience
+All engine calls go through `withResilience` (`apps/api/src/llm/resilience.ts`, wired in `llm/engines.ts`):
+- retry with exponential backoff that **honors** Gemini's `retryDelay` and HTTP `Retry-After`,
+- per-engine **throttle** (min gap: gemini 1.5s, perplexity 1s, chatgpt 0.6s) to avoid bursting into 429,
+- **120s timeout** per call; OpenAI/Perplexity SDK clients also set `maxRetries:4, timeout:120000`.
+- Net effect: a 429 self-heals (slower pass) instead of failing. Gemini 429s no longer break a run.
 
 ### Engine keys / data quality
 - `PERPLEXITY_API_KEY` left blank **intentionally** — code skips Perplexity gracefully (`[refresh] skip perplexity`), never fails. Add only if 3-engine consensus is wanted.
@@ -113,10 +142,10 @@ Three **separate** Railway services in the same project (Railway cron is per-ser
 
 ## TODO / deferred
 
-- [ ] **Rotate the Postgres password** (was pasted in chat during setup).
-- [ ] Add **`PERPLEXITY_API_KEY`** to API + all 3 cron services (3rd ranking engine).
-- [ ] Verify paid Gemini key cleared the 429s on the next cron cycle.
-- [ ] Re-run `auto-promote` (or let cron-catalog) to promote the remaining probed ledgers.
+- [x] ~~Crons failing~~ — replaced Railway cron with in-process scheduler (2026-06-16). 3 cron services deleted.
+- [x] ~~Gemini 429s~~ — paid key confirmed (`serviceTier:standard`) + `withResilience` retry/backoff/throttle added.
+- [ ] **Rotate the Postgres password** (was pasted in chat during setup). Also rotate the Gemini key (partially printed once).
+- [ ] `PERPLEXITY_API_KEY` left blank intentionally — add only if 3rd engine wanted (code skips it cleanly).
 - [ ] Resend email — DNS records + code not wired yet.
 - [ ] Google OAuth login (Auth.js) — credentials + code not wired yet. Redirect URI when built: `https://checkaivisible.com/api/auth/callback/google`.
 - [ ] Dodo Payments — deferred per product plan.
