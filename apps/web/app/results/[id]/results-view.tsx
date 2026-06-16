@@ -76,7 +76,7 @@ export function ResultsView({ id }: { id: string }) {
   }
 
   if (data.status === "failed") {
-    return <ErrorView message="Audit failed. This is on us — please try again." />;
+    return <ErrorView message="Audit failed. This is on us, please try again." />;
   }
 
   if (data.status !== "done") {
@@ -124,7 +124,7 @@ function LoadingView({
       )}
 
       <p className="mt-2 text-muted-foreground">
-        This takes 30–90 seconds. Hang tight — or have us email you when it&apos;s done.
+        This takes 30–90 seconds. Hang tight, or have us email you when it&apos;s done.
       </p>
 
       <ol className="mt-10 space-y-3">
@@ -424,7 +424,7 @@ function EmailCapture({ auditId, source }: { auditId?: string; source: string })
   if (sent) {
     return (
       <div className="rounded-md border border-success/30 bg-success/5 px-3 py-2 text-sm">
-        Got it — check your inbox.
+        Got it, check your inbox.
       </div>
     );
   }
@@ -473,12 +473,12 @@ function verdictFor(score: number): { title: string; body: string } {
   if (score >= 80) {
     return {
       title: "AI knows you well",
-      body: "You're consistently surfaced for high-intent queries in your city. Keep monitoring — this can change fast.",
+      body: "You're consistently surfaced for high-intent queries in your city. Keep monitoring, this can change fast.",
     };
   }
   if (score >= 50) {
     return {
-      title: "You're on the radar — barely",
+      title: "You're on the radar, barely",
       body: "AI mentions you for some queries but misses others. There are clear, fixable gaps in your category and city.",
     };
   }

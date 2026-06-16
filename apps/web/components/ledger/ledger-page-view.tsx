@@ -30,7 +30,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
   const ld = graph(
     {
       "@type": "ItemList",
-      name: `${ledger.title} — according to AI`,
+      name: `${ledger.title}, according to AI`,
       description: `Which ${subject} ChatGPT, Gemini and Perplexity actually recommend, sampled 5× weekly.`,
       itemListOrder: "https://schema.org/ItemListOrderDescending",
       numberOfItems: entries.length,
@@ -53,7 +53,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
       <CategoryTabs active={ledger.slug} />
 
       <div className="mx-auto max-w-[1440px] px-6 pb-24 pt-8 sm:pt-10">
-        {/* one-line header — the table is the page */}
+        {/* one-line header, the table is the page */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-10 gap-y-2">
           <h1 className="font-display text-balance text-3xl sm:text-4xl">
             {ledger.title}
@@ -62,14 +62,14 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
                 Hot
               </span>
             )}{" "}
-            <span className="text-muted-foreground">— according to AI</span>
+            <span className="text-muted-foreground">, according to AI</span>
           </h1>
           <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
             updated {LEDGER_UPDATED_AT} · next run <span className="text-primary">{NEXT_REFRESH}</span>
           </span>
         </div>
 
-        {/* direct answer — the citable, lift-ready sentence (AEO) */}
+        {/* direct answer, the citable, lift-ready sentence (AEO) */}
         {directAnswer && (
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-foreground/80">{directAnswer}</p>
         )}
@@ -83,7 +83,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
         <div className="mt-10 grid gap-x-16 gap-y-4 border-t border-border pt-8 text-sm leading-relaxed text-muted-foreground md:grid-cols-2">
           <p>
             Every week we ask ChatGPT, Gemini and Perplexity{" "}
-            <span className="font-mono text-xs text-foreground/80">&ldquo;{ledger.query}&rdquo;</span> — five
+            <span className="font-mono text-xs text-foreground/80">&ldquo;{ledger.query}&rdquo;</span>, five
             times each, across ~20 phrasings. Score = how often a name appears in the answers; n/5 = mentioned
             in n of 5 runs per engine.
           </p>

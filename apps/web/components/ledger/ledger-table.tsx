@@ -198,7 +198,7 @@ function Delta({ delta }: { delta: number }) {
   if (delta === 0) {
     return (
       <span role="cell" aria-label="No change this week" className="text-right font-mono text-xs text-muted-foreground">
-        —
+, 
       </span>
     );
   }

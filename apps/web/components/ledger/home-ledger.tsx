@@ -88,7 +88,7 @@ export function HomeLedger() {
       {/* active ledger header */}
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 px-4 pt-5 sm:px-5">
         <h2 className="text-xl font-medium tracking-tight sm:text-2xl">
-          {title || "Loading…"} <span className="text-muted-foreground">— according to AI</span>
+          {title || "Loading…"} <span className="text-muted-foreground">, according to AI</span>
         </h2>
         <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
           updated {LEDGER_UPDATED_AT} · next {NEXT_REFRESH}
@@ -128,7 +128,7 @@ export function HomeLedger() {
   );
 }
 
-/* skeleton rows while the ledger loads — matches the table's grid rhythm */
+/* skeleton rows while the ledger loads, matches the table's grid rhythm */
 function LedgerSkeleton() {
   return (
     <div role="status" className="pt-2">
@@ -153,7 +153,7 @@ function LedgerSkeleton() {
   );
 }
 
-/* ledger fetch failed — plain message + retry, no dead-end */
+/* ledger fetch failed, plain message + retry, no dead-end */
 function LedgerError({ onRetry }: { onRetry: () => void }) {
   return (
     <div role="alert" className="flex flex-col items-center gap-3 py-14 text-center">

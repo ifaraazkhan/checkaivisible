@@ -14,7 +14,7 @@ export type AnalyticsEvent =
   | "check_started" // checker form submitted
   | "check_completed" // report finished rendering (carries score/tier)
   | "fix_plan_clicked" // clicked through to the fix plan
-  | "email_unlocked" // gave email to unlock fixes — the lead/conversion
+  | "email_unlocked" // gave email to unlock fixes, the lead/conversion
   | "leaderboard_viewed";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;

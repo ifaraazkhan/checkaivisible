@@ -17,7 +17,7 @@ export async function generateMetadata({
   if (!data) return {};
   const { ledger } = data;
   return {
-    title: `${ledger.title}, according to AI — live ranking`,
+    title: `${ledger.title}, according to AI, live ranking`,
     description: `${ledger.title} as recommended by ChatGPT, Gemini and Perplexity. Sampled 5× per engine, refreshed weekly, citations included.`,
   };
 }

@@ -35,11 +35,11 @@ const archivo = Archivo({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "checkaivisible — Who does AI actually recommend?",
+    default: "checkaivisible, Who does AI actually recommend?",
     template: "%s | checkaivisible",
   },
   description:
-    "We ask ChatGPT, Gemini & Perplexity \"best X\" every week — and publish what they answer. Live leaderboards, sourced citations, free visibility check.",
+    "We ask ChatGPT, Gemini & Perplexity \"best X\" every week, and publish what they answer. Live leaderboards, sourced citations, free visibility check.",
   openGraph: {
     type: "website",
     siteName: "checkaivisible",

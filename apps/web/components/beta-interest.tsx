@@ -4,15 +4,15 @@ import { useState } from "react";
 import { Sparkles, LineChart, MailCheck, Check, Loader2 } from "lucide-react";
 import { captureEmail } from "@/lib/api";
 
-/* What early access unlocks — kept in sync with the report-page teasers. */
+/* What early access unlocks, kept in sync with the report-page teasers. */
 const BENEFITS: { icon: React.ReactNode; text: string }[] = [
   {
     icon: <Sparkles className="h-4 w-4" />,
-    text: "A personalized AI fix agent that writes the exact JSON-LD, FAQ copy and meta tags for your site — not just what to fix, but the code to paste.",
+    text: "A personalized AI fix agent that writes the exact JSON-LD, FAQ copy and meta tags for your site, not just what to fix, but the code to paste.",
   },
   {
     icon: <LineChart className="h-4 w-4" />,
-    text: "Weekly tracking of your domains' AI Visibility Index — watch your score, rankings and performance move over time.",
+    text: "Weekly tracking of your domains' AI Visibility Index, watch your score, rankings and performance move over time.",
   },
   {
     icon: <MailCheck className="h-4 w-4" />,
@@ -52,7 +52,7 @@ export function BetaInterest({
       <p
         className={`inline-flex items-center gap-2 text-sm font-medium text-success ${isFooter ? "" : "mt-5"}`}
       >
-        <Check className="h-4 w-4" /> You&apos;re on the list — we&apos;ll email you when it opens.
+        <Check className="h-4 w-4" /> You&apos;re on the list, we&apos;ll email you when it opens.
       </p>
     ) : (
       <form
@@ -92,7 +92,7 @@ export function BetaInterest({
         </p>
         <div className="mt-3">{form}</div>
         {state === "error" && (
-          <p className="mt-2 text-xs text-destructive">Something went wrong — try again.</p>
+          <p className="mt-2 text-xs text-destructive">Something went wrong, try again.</p>
         )}
       </div>
     );
@@ -121,10 +121,10 @@ export function BetaInterest({
       </ul>
       {form}
       {state === "error" && (
-        <p className="mt-2 text-xs text-destructive">Something went wrong — try again.</p>
+        <p className="mt-2 text-xs text-destructive">Something went wrong, try again.</p>
       )}
       <p className="mt-2 text-xs text-muted-foreground">
-        No spam — one email when early access opens.
+        No spam, one email when early access opens.
       </p>
     </>
   );

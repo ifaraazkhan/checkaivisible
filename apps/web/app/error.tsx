@@ -29,7 +29,7 @@ export default function Error({
         That didn&rsquo;t go as planned.
       </h1>
       <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
-        An unexpected error stopped this page from loading. Try again — if it keeps happening,
+        An unexpected error stopped this page from loading. Try again, if it keeps happening,
         let us know at{" "}
         <a href="mailto:hello@checkaivisible.com" className="text-foreground/90 underline underline-offset-4 hover:text-foreground">
           hello@checkaivisible.com

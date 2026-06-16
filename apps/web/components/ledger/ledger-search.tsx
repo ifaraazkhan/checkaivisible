@@ -62,7 +62,7 @@ export function LedgerSearch() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => results && setOpen(true)}
-          placeholder="Search ledgers — e.g. CRM, email marketing, project management"
+          placeholder="Search ledgers, e.g. CRM, email marketing, project management"
           className="h-12 w-full bg-transparent text-sm placeholder:text-muted-foreground/70 focus:outline-none"
           aria-label="Search ledgers"
         />
@@ -100,7 +100,7 @@ export function LedgerSearch() {
             </ul>
           ) : (
             <div className="px-4 py-4 text-sm text-muted-foreground">
-              No ledger for <span className="text-foreground">“{q.trim()}”</span> yet — we&apos;ve
+              No ledger for <span className="text-foreground">“{q.trim()}”</span> yet, we&apos;ve
               noted the request and may add it soon.
             </div>
           )}

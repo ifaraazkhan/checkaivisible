@@ -14,7 +14,7 @@ export type GlossaryTerm = {
   term: string;
   abbr?: string;
   motif: HeroMotif;
-  /** ≤155 chars — meta description + the DefinedTerm.description + card subtitle. */
+  /** ≤155 chars, meta description + the DefinedTerm.description + card subtitle. */
   short: string;
   /** The boxed lead answer (≤60 words). */
   answer: string;
@@ -33,7 +33,7 @@ export const TERMS: GlossaryTerm[] = [
     motif: "answer",
     short: "Optimizing a website to be read and cited by AI answer engines like ChatGPT, Gemini and Perplexity.",
     answer:
-      "**Answer Engine Optimization (AEO)** is the practice of structuring a website so AI answer engines can read it, understand it, and cite it when they answer a question — optimizing to *be the answer* rather than to rank in a list of links.",
+      "**Answer Engine Optimization (AEO)** is the practice of structuring a website so AI answer engines can read it, understand it, and cite it when they answer a question, optimizing to *be the answer* rather than to rank in a list of links.",
     body: [
       {
         type: "p",
@@ -52,9 +52,9 @@ export const TERMS: GlossaryTerm[] = [
     term: "Generative Engine Optimization",
     abbr: "GEO",
     motif: "ranking",
-    short: "Influencing what generative AI models say about you across all of their outputs — the umbrella over AEO.",
+    short: "Influencing what generative AI models say about you across all of their outputs, the umbrella over AEO.",
     answer:
-      "**Generative Engine Optimization (GEO)** is the practice of influencing what generative AI models say about you across all of their outputs — how you're described, recommended and ranked anywhere a model generates text. It's the broader umbrella over [AEO](/glossary/answer-engine-optimization).",
+      "**Generative Engine Optimization (GEO)** is the practice of influencing what generative AI models say about you across all of their outputs, how you're described, recommended and ranked anywhere a model generates text. It's the broader umbrella over [AEO](/glossary/answer-engine-optimization).",
     body: [
       {
         type: "p",
@@ -73,9 +73,9 @@ export const TERMS: GlossaryTerm[] = [
     term: "Search Engine Optimization",
     abbr: "SEO",
     motif: "compare",
-    short: "Optimizing a site to rank in traditional search engine results — the foundation AEO and GEO build on.",
+    short: "Optimizing a site to rank in traditional search engine results, the foundation AEO and GEO build on.",
     answer:
-      "**Search Engine Optimization (SEO)** is the practice of optimizing a website to rank well in traditional search engine results pages. Its technical foundations — crawlability, speed, structured data — are exactly what [AEO](/glossary/answer-engine-optimization) and [GEO](/glossary/generative-engine-optimization) build on.",
+      "**Search Engine Optimization (SEO)** is the practice of optimizing a website to rank well in traditional search engine results pages. Its technical foundations, crawlability, speed, structured data, are exactly what [AEO](/glossary/answer-engine-optimization) and [GEO](/glossary/generative-engine-optimization) build on.",
     body: [
       {
         type: "p",
@@ -95,18 +95,18 @@ export const TERMS: GlossaryTerm[] = [
     motif: "answer",
     short: "An AI system that responds to a question with a direct, synthesized answer instead of a list of links.",
     answer:
-      "An **answer engine** is an AI system that responds to a question with a direct, synthesized answer — often citing sources — instead of returning a list of links. ChatGPT, Gemini, Perplexity and Google's AI Overviews are answer engines.",
+      "An **answer engine** is an AI system that responds to a question with a direct, synthesized answer, often citing sources, instead of returning a list of links. ChatGPT, Gemini, Perplexity and Google's AI Overviews are answer engines.",
     body: [
       {
         type: "p",
-        text: "Because the output is a short answer naming only a few sources, being one of those cited sources is the whole game — which is what [AEO](/glossary/answer-engine-optimization) optimizes for.",
+        text: "Because the output is a short answer naming only a few sources, being one of those cited sources is the whole game, which is what [AEO](/glossary/answer-engine-optimization) optimizes for.",
       },
     ],
     seeAlso: ["answer-engine-optimization", "ai-overviews", "retrieval-augmented-generation"],
     posts: ["how-ai-engines-choose-recommendations", "what-is-answer-engine-optimization"],
     faq: {
       q: "What are examples of answer engines?",
-      a: "ChatGPT, Google Gemini, Perplexity and Google's AI Overviews are all answer engines — they synthesize a direct answer to a query rather than only listing links.",
+      a: "ChatGPT, Google Gemini, Perplexity and Google's AI Overviews are all answer engines, they synthesize a direct answer to a query rather than only listing links.",
     },
   },
   {
@@ -115,7 +115,7 @@ export const TERMS: GlossaryTerm[] = [
     motif: "doc",
     short: "A plain-text Markdown file at your site root that gives AI tools a concise map of your most important content.",
     answer:
-      "**llms.txt** is a plain-text Markdown file at the root of your site (`/llms.txt`) that gives AI tools a concise, curated map of what your site is and where the important content lives — like a `robots.txt` for meaning rather than access.",
+      "**llms.txt** is a plain-text Markdown file at the root of your site (`/llms.txt`) that gives AI tools a concise, curated map of what your site is and where the important content lives, like a `robots.txt` for meaning rather than access.",
     body: [
       {
         type: "p",
@@ -126,16 +126,16 @@ export const TERMS: GlossaryTerm[] = [
     posts: ["how-to-write-llms-txt"],
     faq: {
       q: "Where does llms.txt go?",
-      a: "At the root of your domain, reachable at https://yoursite.com/llms.txt — the same location as robots.txt.",
+      a: "At the root of your domain, reachable at https://yoursite.com/llms.txt, the same location as robots.txt.",
     },
   },
   {
     slug: "schema-markup",
     term: "Schema Markup (Structured Data)",
     motif: "schema",
-    short: "Schema.org code that tells engines exactly what a page is — organization, product, FAQ — usually as JSON-LD.",
+    short: "Schema.org code that tells engines exactly what a page is, organization, product, FAQ, usually as JSON-LD.",
     answer:
-      "**Schema markup** (structured data) is [Schema.org](https://schema.org) code that tells engines explicitly what a page is — an organization, product, article or FAQ — instead of making them infer it from prose. It's usually added as [JSON-LD](/glossary/json-ld).",
+      "**Schema markup** (structured data) is [Schema.org](https://schema.org) code that tells engines explicitly what a page is, an organization, product, article or FAQ, instead of making them infer it from prose. It's usually added as [JSON-LD](/glossary/json-ld).",
     body: [
       {
         type: "p",
@@ -146,7 +146,7 @@ export const TERMS: GlossaryTerm[] = [
     posts: ["schema-markup-for-ai-visibility", "faq-schema-for-ai"],
     faq: {
       q: "What format should schema markup use?",
-      a: "JSON-LD is the recommended format — a script block in the page's HTML that engines and search crawlers most reliably parse.",
+      a: "JSON-LD is the recommended format, a script block in the page's HTML that engines and search crawlers most reliably parse.",
     },
   },
   {
@@ -155,7 +155,7 @@ export const TERMS: GlossaryTerm[] = [
     motif: "schema",
     short: "A JSON-based format for adding Schema.org structured data to a page in a single script block.",
     answer:
-      "**JSON-LD** (JSON for Linking Data) is the recommended format for adding [structured data](/glossary/schema-markup) to a page — a single `<script type=\"application/ld+json\">` block. It's easy to maintain and the format engines parse most reliably.",
+      "**JSON-LD** (JSON for Linking Data) is the recommended format for adding [structured data](/glossary/schema-markup) to a page, a single `<script type=\"application/ld+json\">` block. It's easy to maintain and the format engines parse most reliably.",
     body: [
       {
         type: "p",
@@ -175,7 +175,7 @@ export const TERMS: GlossaryTerm[] = [
     motif: "answer",
     short: "FAQPage structured data that wraps visible questions and answers in machine-readable form AI engines can lift.",
     answer:
-      "**FAQ schema** is `FAQPage` [structured data](/glossary/schema-markup) that wraps your visible questions and answers in machine-readable form, giving AI engines clean question-answer pairs they can lift directly — provided the schema matches the visible page.",
+      "**FAQ schema** is `FAQPage` [structured data](/glossary/schema-markup) that wraps your visible questions and answers in machine-readable form, giving AI engines clean question-answer pairs they can lift directly, provided the schema matches the visible page.",
     body: [
       {
         type: "p",
@@ -193,9 +193,9 @@ export const TERMS: GlossaryTerm[] = [
     slug: "eeat",
     term: "E-E-A-T",
     motif: "trust",
-    short: "Experience, Expertise, Authoritativeness and Trust — the credibility signals engines use to decide who to rely on.",
+    short: "Experience, Expertise, Authoritativeness and Trust, the credibility signals engines use to decide who to rely on.",
     answer:
-      "**E-E-A-T** stands for Experience, Expertise, Authoritativeness and Trust — the credibility framework engines use to decide which sources to rely on. For AI, what matters is the subset a machine can verify: a clear identity, named authors, dates, citations and Organization structured data.",
+      "**E-E-A-T** stands for Experience, Expertise, Authoritativeness and Trust, the credibility framework engines use to decide which sources to rely on. For AI, what matters is the subset a machine can verify: a clear identity, named authors, dates, citations and Organization structured data.",
     body: [
       {
         type: "p",
@@ -206,16 +206,16 @@ export const TERMS: GlossaryTerm[] = [
     posts: ["eeat-for-ai"],
     faq: {
       q: "What does E-E-A-T stand for?",
-      a: "Experience, Expertise, Authoritativeness and Trust — credibility signals that help search and AI engines decide which sources are reliable enough to cite.",
+      a: "Experience, Expertise, Authoritativeness and Trust, credibility signals that help search and AI engines decide which sources are reliable enough to cite.",
     },
   },
   {
     slug: "crawlability",
     term: "Crawlability",
     motif: "crawl",
-    short: "Whether automated crawlers — including AI bots — can reach and fetch your pages at all.",
+    short: "Whether automated crawlers, including AI bots, can reach and fetch your pages at all.",
     answer:
-      "**Crawlability** is whether automated crawlers — including AI answer-engine bots — can reach and fetch your pages at all. If a bot is blocked by [robots.txt](/glossary/robots-txt), a login wall or a slow server, your content can't be read, let alone cited.",
+      "**Crawlability** is whether automated crawlers, including AI answer-engine bots, can reach and fetch your pages at all. If a bot is blocked by [robots.txt](/glossary/robots-txt), a login wall or a slow server, your content can't be read, let alone cited.",
     body: [
       {
         type: "p",
@@ -235,11 +235,11 @@ export const TERMS: GlossaryTerm[] = [
     motif: "doc",
     short: "A root-level file that tells crawlers which parts of your site they may or may not access.",
     answer:
-      "**robots.txt** is a file at your site root that tells crawlers — including AI bots — which paths they may or may not access. Blocking an AI crawler here makes your content invisible to that answer engine, so review it before assuming you have a content problem.",
+      "**robots.txt** is a file at your site root that tells crawlers, including AI bots, which paths they may or may not access. Blocking an AI crawler here makes your content invisible to that answer engine, so review it before assuming you have a content problem.",
     body: [
       {
         type: "p",
-        text: "It controls access, not meaning — that's the difference from [llms.txt](/glossary/llms-txt). Related: [crawlability](/glossary/crawlability).",
+        text: "It controls access, not meaning, that's the difference from [llms.txt](/glossary/llms-txt). Related: [crawlability](/glossary/crawlability).",
       },
     ],
     seeAlso: ["llms-txt", "crawlability", "sitemap"],
@@ -279,7 +279,7 @@ export const TERMS: GlossaryTerm[] = [
     body: [
       {
         type: "p",
-        text: "Clean canonicals help engines build one coherent entity for each page — part of the same clarity that [structured data](/glossary/schema-markup) provides.",
+        text: "Clean canonicals help engines build one coherent entity for each page, part of the same clarity that [structured data](/glossary/schema-markup) provides.",
       },
     ],
     seeAlso: ["sitemap", "search-engine-optimization", "schema-markup"],
@@ -296,7 +296,7 @@ export const TERMS: GlossaryTerm[] = [
     motif: "crawl",
     short: "Generating a page's HTML on the server so content is present without running JavaScript.",
     answer:
-      "**Server-side rendering (SSR)** generates a page's HTML on the server so the content is present in the initial response — before any JavaScript runs. It's how you make sure AI crawlers, which [typically don't execute JavaScript](/blog/does-chatgpt-read-javascript), can actually read your content.",
+      "**Server-side rendering (SSR)** generates a page's HTML on the server so the content is present in the initial response, before any JavaScript runs. It's how you make sure AI crawlers, which [typically don't execute JavaScript](/blog/does-chatgpt-read-javascript), can actually read your content.",
     body: [
       {
         type: "p",
@@ -334,20 +334,20 @@ export const TERMS: GlossaryTerm[] = [
     slug: "featured-snippet",
     term: "Featured Snippet",
     motif: "answer",
-    short: "A short answer Google extracts to the top of search results — a precursor to today's AI answers.",
+    short: "A short answer Google extracts to the top of search results, a precursor to today's AI answers.",
     answer:
       "A **featured snippet** is a short answer Google extracts and displays at the top of search results, lifted directly from a page. It predates AI answers but rewards the same thing: concise, well-structured, directly-answering content.",
     body: [
       {
         type: "p",
-        text: "The habits that earned featured snippets — a direct lead answer, question-style headings, clean lists — are the same ones that earn [answer-engine](/glossary/answer-engine) citations today.",
+        text: "The habits that earned featured snippets, a direct lead answer, question-style headings, clean lists, are the same ones that earn [answer-engine](/glossary/answer-engine) citations today.",
       },
     ],
     seeAlso: ["ai-overviews", "faq-schema", "answer-engine-optimization"],
     posts: ["faq-schema-for-ai"],
     faq: {
       q: "Are featured snippets the same as AI answers?",
-      a: "Not identical, but closely related. Both lift concise, well-structured answers from pages. Optimizing for one — direct answers, clear headings, FAQ content — helps with the other.",
+      a: "Not identical, but closely related. Both lift concise, well-structured answers from pages. Optimizing for one, direct answers, clear headings, FAQ content, helps with the other.",
     },
   },
   {
@@ -361,7 +361,7 @@ export const TERMS: GlossaryTerm[] = [
     body: [
       {
         type: "p",
-        text: "For current or specific questions, engines retrieve pages in real time — so being a readable, trustworthy candidate decides whether you make it into the answer. Related: [how AI engines choose recommendations](/blog/how-ai-engines-choose-recommendations).",
+        text: "For current or specific questions, engines retrieve pages in real time, so being a readable, trustworthy candidate decides whether you make it into the answer. Related: [how AI engines choose recommendations](/blog/how-ai-engines-choose-recommendations).",
       },
     ],
     seeAlso: ["answer-engine", "crawlability", "knowledge-graph"],
@@ -381,7 +381,7 @@ export const TERMS: GlossaryTerm[] = [
     body: [
       {
         type: "p",
-        text: "Being a well-defined entity — verified identity, `sameAs` links, consistent claims — is part of the [trust](/glossary/eeat) that earns citations.",
+        text: "Being a well-defined entity, verified identity, `sameAs` links, consistent claims, is part of the [trust](/glossary/eeat) that earns citations.",
       },
     ],
     seeAlso: ["schema-markup", "eeat", "answer-engine"],

@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What is CheckAIVisible?",
-    a: "CheckAIVisible publishes which businesses ChatGPT, Gemini and Perplexity actually recommend in each category — like best CRM or best AI coding assistant — refreshed weekly with the source citations. It also offers a free AI-readiness checker that scores how well any website can be read and cited by AI answer engines.",
+    a: "CheckAIVisible publishes which businesses ChatGPT, Gemini and Perplexity actually recommend in each category, like best CRM or best AI coding assistant, refreshed weekly with the source citations. It also offers a free AI-readiness checker that scores how well any website can be read and cited by AI answer engines.",
   },
   {
     q: "How does CheckAIVisible rank businesses?",
@@ -38,7 +38,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Which AI engines do you check?",
-    a: "ChatGPT, Gemini and Perplexity — the three answer engines people most often ask for recommendations. Each is sampled five times per question, every refresh.",
+    a: "ChatGPT, Gemini and Perplexity, the three answer engines people most often ask for recommendations. Each is sampled five times per question, every refresh.",
   },
   {
     q: "Is placement on a leaderboard for sale?",
@@ -50,7 +50,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What does the free AI-readiness checker measure?",
-    a: "It fetches your page the way an AI crawler does — raw HTML, no JavaScript — plus robots.txt, sitemap.xml and llms.txt, then scores seven pillars: crawlability, rendering, structured data, answer-engine optimization, trust and E-E-A-T, performance and SEO. You get an overall score, an AI sub-score and a prioritized list of fixes.",
+    a: "It fetches your page the way an AI crawler does, raw HTML, no JavaScript, plus robots.txt, sitemap.xml and llms.txt, then scores seven pillars: crawlability, rendering, structured data, answer-engine optimization, trust and E-E-A-T, performance and SEO. You get an overall score, an AI sub-score and a prioritized list of fixes.",
   },
 ];
 
@@ -59,7 +59,7 @@ const homepageLd = graph(
     "@type": "WebPage",
     "@id": `${SITE_URL}/#webpage`,
     url: SITE_URL,
-    name: "CheckAIVisible — Who does AI actually recommend?",
+    name: "CheckAIVisible, Who does AI actually recommend?",
     description:
       "Live leaderboards of which businesses ChatGPT, Gemini and Perplexity recommend per category, plus a free AI-readiness checker.",
     isPartOf: websiteRef,
@@ -148,7 +148,7 @@ async function StatsBar() {
   );
 }
 
-/* ---------- compact hero — get out of the ledger's way ---------- */
+/* ---------- compact hero, get out of the ledger's way ---------- */
 function Hero() {
   return (
     <section className="relative isolate">
@@ -160,7 +160,7 @@ function Hero() {
           </h1>
           <p className="reveal reveal-2 mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
             We ask ChatGPT, Gemini and Perplexity &ldquo;best&nbsp;X&rdquo; five times, every
-            week — and publish the answers below. Live, sourced, free.
+            week, and publish the answers below. Live, sourced, free.
           </p>
         </div>
         <div className="reveal reveal-3 flex shrink-0 items-center gap-5 pb-1">
@@ -189,7 +189,7 @@ function Method() {
         One question. Three engines. <em className="text-primary">One ledger.</em>
       </h2>
       <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-        Watch a row get written — then how each answer is dissected.
+        Watch a row get written, then how each answer is dissected.
       </p>
 
       <div className="mt-12">
@@ -200,17 +200,17 @@ function Method() {
         <MethodBlueprint />
         <div className="text-sm leading-relaxed text-muted-foreground">
           <p>
-            AI answers vary run to run — a single rank would be a lie. So every prompt is
+            AI answers vary run to run, a single rank would be a lie. So every prompt is
             sampled <span className="text-foreground/90">five times per engine</span>, mentions are
             fuzzy-matched to real businesses, and the citation behind each mention is kept.
           </p>
           <p className="mt-4">
             Appearance rates, weekly deltas and sources are all published.{" "}
-            <span className="text-foreground/90">Placement is never for sale</span> — a paid spot on a
+            <span className="text-foreground/90">Placement is never for sale</span>, a paid spot on a
             trust ranking would make the whole ledger worthless.
           </p>
           <p className="mt-4">
-            Full write-up, prompts and versioned rules ship with the public launch — signed by the
+            Full write-up, prompts and versioned rules ship with the public launch, signed by the
             founder.
           </p>
         </div>
@@ -228,13 +228,13 @@ function Check() {
           Not on a ledger? <em className="text-primary">Find out why.</em>
         </h2>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-          Run the free scan — see how ready your site is to be read and cited by ChatGPT, Gemini
+          Run the free scan, see how ready your site is to be read and cited by ChatGPT, Gemini
           and Perplexity, and exactly what&apos;s holding it back.
         </p>
         <div className="mt-12 grid items-center gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
           {/* left: the live instrument */}
           <CheckerTerminal />
-          {/* right: the same scan, drawn — url → score → per-engine read → projected rank */}
+          {/* right: the same scan, drawn, url → score → per-engine read → projected rank */}
           <div className="mx-auto w-full max-w-md lg:max-w-none">
             <CheckScan />
           </div>
@@ -263,12 +263,12 @@ function Faq() {
             Gartner projects a 25% drop in traditional search-engine volume by 2026
           </a>{" "}
           as people turn to AI assistants for answers. That makes being recommended by
-          ChatGPT, Gemini and Perplexity as important as ranking on Google — and most sites
+          ChatGPT, Gemini and Perplexity as important as ranking on Google, and most sites
           have no idea whether AI can even read them.
         </p>
 
         <blockquote className="mt-8 border-l-2 border-primary/60 pl-5 text-lg italic leading-relaxed text-foreground/90">
-          &ldquo;Placement is never for sale — a paid spot on a trust ranking would make the
+          &ldquo;Placement is never for sale, a paid spot on a trust ranking would make the
           whole ledger worthless.&rdquo;
         </blockquote>
 

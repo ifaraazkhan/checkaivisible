@@ -13,7 +13,7 @@ import {
 } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
-  title: "Blog — AEO, GEO & AI visibility",
+  title: "Blog, AEO, GEO & AI visibility",
   description:
     "Plain-English guides to Answer Engine Optimization: how to get read, trusted and recommended by ChatGPT, Gemini and Perplexity.",
   alternates: { canonical: "/blog" },
@@ -56,7 +56,7 @@ export default function BlogIndexPage() {
           Get read, trusted and <em className="text-primary">recommended</em> by AI.
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          Plain-English guides to Answer Engine Optimization — how ChatGPT, Gemini and Perplexity
+          Plain-English guides to Answer Engine Optimization, how ChatGPT, Gemini and Perplexity
           read your site, why they recommend who they recommend, and what to fix. Pair them with the{" "}
           <Link href={"/glossary" as const} className="text-foreground/90 underline underline-offset-4 hover:text-foreground">
             AEO glossary

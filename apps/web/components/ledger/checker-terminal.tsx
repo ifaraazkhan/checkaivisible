@@ -58,7 +58,7 @@ export function CheckerTerminal() {
         <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
         <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
         <span className="h-2.5 w-2.5 rounded-full bg-foreground/15" />
-        <span className="ml-3 font-mono text-[11px] text-muted-foreground">checkaivisible — ai-readiness scan</span>
+        <span className="ml-3 font-mono text-[11px] text-muted-foreground">checkaivisible, ai-readiness scan</span>
       </div>
 
       <form onSubmit={onSubmit} className="p-5 font-mono text-sm sm:p-6">
@@ -94,12 +94,12 @@ export function CheckerTerminal() {
 
         {loading && (
           <p className="mt-4 text-muted-foreground" aria-live="polite">
-            <span className="text-primary">→</span> fetching your page the way an AI crawler reads it — checking structure, schema and answers…
+            <span className="text-primary">→</span> fetching your page the way an AI crawler reads it, checking structure, schema and answers…
           </p>
         )}
         {error && (
           <p className="mt-4 text-destructive" role="alert">
-            ✗ {error} — check the domain and retry
+            ✗ {error}, check the domain and retry
           </p>
         )}
 

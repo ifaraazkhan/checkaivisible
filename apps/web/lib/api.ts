@@ -171,7 +171,7 @@ export type SolutionFix = {
   example?: { lang: string; code: string };
 };
 
-/** localStorage key — presence = the user gave their email; fix plans are unlocked. */
+/** localStorage key, presence = the user gave their email; fix plans are unlocked. */
 export const UNLOCK_KEY = "cav_email";
 
 /** Unlock + fetch the fix plan for a domain (records the email lead server-side). */

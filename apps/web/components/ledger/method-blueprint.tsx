@@ -104,7 +104,7 @@ export function MethodBlueprint() {
       <motion.path d="M 376 315 L 460 315 C 520 315 530 280 580 280" stroke="currentColor" className="text-foreground/30" strokeWidth="1.5" variants={draw(1.5)} />
       <motion.circle cx="376" cy="315" r="2.5" className="fill-foreground/50" variants={fade(1.45)} />
       <motion.text x="588" y="278" fontSize="11" fontFamily="var(--font-mono)" className="fill-foreground/80" variants={fade(1.85)}>
-        <tspan x="588" dy="0">citation captured —</tspan>
+        <tspan x="588" dy="0">citation captured, </tspan>
         <tspan x="588" dy="14">we publish the why</tspan>
       </motion.text>
 

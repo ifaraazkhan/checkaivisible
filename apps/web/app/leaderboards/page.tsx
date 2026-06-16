@@ -9,7 +9,7 @@ import { fetchLedgerIndex, type LedgerIndexItem } from "@/lib/ledgers-source";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "All ledgers — who AI recommends, by category",
+  title: "All ledgers, who AI recommends, by category",
   description:
     "The full index of AI recommendation ledgers: software categories and local markets, ranked by what ChatGPT, Gemini and Perplexity actually answer. Refreshed weekly.",
 };
@@ -46,9 +46,9 @@ export default async function LeaderboardsPage() {
         </div>
 
         {groupByTheme(software).map(({ theme, items }) => (
-          <Group key={theme} title={`${theme} — ${items.length}`} ledgers={items} />
+          <Group key={theme} title={`${theme}, ${items.length}`} ledgers={items} />
         ))}
-        <Group title={`Local — ${local.length} open`} ledgers={local} />
+        <Group title={`Local, ${local.length} open`} ledgers={local} />
       </div>
     </main>
   );
@@ -100,7 +100,7 @@ function Group({ title, ledgers }: { title: string; ledgers: LedgerIndexItem[] }
               </span>
               <span className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
                 {ledger.top && <span className="font-mono text-xs text-primary">1</span>}
-                {ledger.top ?? "—"}
+                {ledger.top ?? ", "}
                 <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </span>
             </Link>

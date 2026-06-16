@@ -54,7 +54,7 @@ export function BusinessDetail({
           <div>
             <h2 className="font-display text-2xl">{detail?.name ?? name}</h2>
             <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-              what AI says — this week
+              what AI says, this week
             </p>
           </div>
           <button
@@ -73,7 +73,7 @@ export function BusinessDetail({
 
         {state === "empty" && (
           <p className="mt-8 text-sm text-muted-foreground">
-            No detailed data yet for this business — this ledger is still on sample data. Run a refresh
+            No detailed data yet for this business, this ledger is still on sample data. Run a refresh
             to populate live engine detail.
           </p>
         )}
@@ -88,7 +88,7 @@ export function BusinessDetail({
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm font-medium">{ENGINE_LABELS[engine]}</span>
                     <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                      {e.appearances}/5 runs · best #{e.bestRank ?? "—"} · avg #{e.avgRank ?? "—"}
+                      {e.appearances}/5 runs · best #{e.bestRank ?? ", "} · avg #{e.avgRank ?? ", "}
                     </span>
                   </div>
                   {e.reasons.length > 0 && (

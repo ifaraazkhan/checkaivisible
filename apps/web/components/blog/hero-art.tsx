@@ -29,7 +29,7 @@ function Frame({ children }: { children: React.ReactNode }) {
       className="h-full w-full text-foreground"
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* faint dotted field, masked to the center — matches the site's bg-dots */}
+      {/* faint dotted field, masked to the center, matches the site's bg-dots */}
       <defs>
         <pattern id="ha-dots" width="20" height="20" patternUnits="userSpaceOnUse">
           <circle cx="1" cy="1" r="1" className="fill-foreground/10" />
@@ -67,7 +67,7 @@ function Scan() {
       {/* magnifier sweeping the page */}
       <circle cx="430" cy="150" r="46" stroke="currentColor" strokeWidth={1.5} className="text-foreground/80" />
       <line x1="463" y1="183" x2="500" y2="220" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="text-foreground/80" />
-      {/* the one thing it found — gold */}
+      {/* the one thing it found, gold */}
       <circle cx="430" cy="150" r="5" className="fill-primary" />
     </Frame>
   );
@@ -107,7 +107,7 @@ function Schema() {
           strokeWidth={1.5}
         />
       ))}
-      {/* curly braces — the JSON-LD nod */}
+      {/* curly braces, the JSON-LD nod */}
       <text x="600" y="165" fontSize="80" fontFamily="var(--font-mono)" className="fill-foreground/20">
         {"{ }"}
       </text>
@@ -128,7 +128,7 @@ function Crawl() {
       {/* destination reached */}
       <circle cx="640" cy="150" r="20" className="fill-score/15 stroke-score" strokeWidth={1.5} />
       <path d="M 631 150 l 6 7 l 12 -15" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="text-score" />
-      {/* origin marker — gold */}
+      {/* origin marker, gold */}
       <circle cx="180" cy="230" r="5" className="fill-primary" />
     </Frame>
   );
@@ -152,7 +152,7 @@ function Answer() {
           <line key={y} x1="464" y1={y} x2="616" y2={y} className="text-foreground/25" />
         ))}
       </g>
-      {/* the cited line — score-green + gold source dot */}
+      {/* the cited line, score-green + gold source dot */}
       <line x1="464" y1="180" x2="560" y2="180" stroke="currentColor" strokeWidth={2} className="text-score" />
       <circle cx="600" cy="180" r="6" className="fill-primary" />
     </Frame>
@@ -181,7 +181,7 @@ function Compare() {
       ].map(([x, w], i) => (
         <rect key={`r${i}`} x={x} y={104 + i * 34} width={w} height="10" rx="5" className="fill-foreground/20" />
       ))}
-      {/* the divider verdict — gold "vs" */}
+      {/* the divider verdict, gold "vs" */}
       <circle cx="400" cy="150" r="22" className="fill-card stroke-primary" strokeWidth={1.5} />
       <text x="400" y="157" textAnchor="middle" fontSize="16" fontFamily="var(--font-mono)" className="fill-primary">
         vs
@@ -232,7 +232,7 @@ function Doc() {
       {[136, 158, 180, 202].map((y, i) => (
         <line key={y} x1="352" y1={y} x2={i === 3 ? 420 : 458} y2={y} stroke="currentColor" strokeWidth={1.5} className="text-foreground/25" />
       ))}
-      {/* the directive line — gold */}
+      {/* the directive line, gold */}
       <line x1="352" y1="114" x2="430" y2="114" stroke="currentColor" strokeWidth={2} className="text-primary" />
     </Frame>
   );

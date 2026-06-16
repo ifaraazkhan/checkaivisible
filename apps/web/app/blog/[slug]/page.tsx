@@ -107,7 +107,7 @@ export default async function BlogPostPage({
           <Prose blocks={post.blocks} />
         </div>
 
-        {/* FAQ — visible, and identical to the FAQPage JSON-LD above */}
+        {/* FAQ, visible, and identical to the FAQPage JSON-LD above */}
         {post.faqs.length > 0 && (
           <section className="mt-14">
             <h2 className="font-display text-2xl sm:text-3xl">Frequently asked questions</h2>
@@ -130,7 +130,7 @@ export default async function BlogPostPage({
         <h2 className="font-display text-xl sm:text-2xl">See where your site stands</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           The free AI-readiness check fetches your page the way an AI crawler does and scores
-          everything in this guide — crawlability, schema, answer shape and trust.
+          everything in this guide, crawlability, schema, answer shape and trust.
         </p>
         <Button asChild className="mt-5 rounded-lg">
           <Link href={"/#check" as const}>

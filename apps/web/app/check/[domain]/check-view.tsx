@@ -95,7 +95,7 @@ export function CheckView({ domain }: { domain: string }) {
   if (timedOut)
     return (
       <ErrorBox
-        message={`Scanning ${domain} is taking longer than expected — the site may be slow or blocking automated requests. Try running it again in a moment.`}
+        message={`Scanning ${domain} is taking longer than expected, the site may be slow or blocking automated requests. Try running it again in a moment.`}
       />
     );
   if (error && !data) return <ErrorBox message={error} />;
@@ -134,11 +134,11 @@ function Scanning({
       </div>
       <h1 className="mt-4 font-mono text-2xl font-semibold tracking-tight sm:text-3xl">{domain}</h1>
       <p className="mt-2 text-muted-foreground">
-        Reading the site the way ChatGPT, Perplexity, Gemini and Claude would — no JavaScript, just
+        Reading the site the way ChatGPT, Perplexity, Gemini and Claude would, no JavaScript, just
         the raw HTML their crawlers receive.
       </p>
 
-      {/* Live engine log — chat-style "thinking" so you see exactly where we are. */}
+      {/* Live engine log, chat-style "thinking" so you see exactly where we are. */}
       <div className="mt-8 overflow-hidden rounded-lg border border-border bg-card font-mono text-[13px]">
         <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
           <span className="h-2 w-2 rounded-full bg-success/70" />
@@ -157,7 +157,7 @@ function Scanning({
               <span className="min-w-0">
                 <span className={s.done ? "text-foreground/80" : "text-foreground"}>{s.label}</span>
                 {s.detail && (
-                  <span className="ml-2 text-muted-foreground">— {s.detail}</span>
+                  <span className="ml-2 text-muted-foreground">, {s.detail}</span>
                 )}
               </span>
             </li>
@@ -243,7 +243,7 @@ function Report({ report }: { report: ReadinessReport }) {
         </div>
       </div>
 
-      {/* Prominent CTA — the conversion seam, kept above the fold */}
+      {/* Prominent CTA, the conversion seam, kept above the fold */}
       <FixPlanCta domain={report.domain} issueCount={report.gaps.length} />
 
       {/* Pillar scores */}
@@ -264,10 +264,10 @@ function Report({ report }: { report: ReadinessReport }) {
         </div>
       </section>
 
-      {/* Raw evidence — "here's exactly what we pulled off your site" */}
+      {/* Raw evidence, "here's exactly what we pulled off your site" */}
       {report.crawl && <EvidencePanel crawl={report.crawl} />}
 
-      {/* Gaps — the wound */}
+      {/* Gaps, the wound */}
       {report.gaps.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold tracking-tight">What&apos;s holding you back</h2>
@@ -288,7 +288,7 @@ function Report({ report }: { report: ReadinessReport }) {
         </section>
       )}
 
-      {/* Full pillar detail (diagnosis only — the cure lives in the fix plan below) */}
+      {/* Full pillar detail (diagnosis only, the cure lives in the fix plan below) */}
       <section>
         <h2 className="text-lg font-semibold tracking-tight">Full breakdown</h2>
         <div className="mt-4 space-y-3">
@@ -303,14 +303,14 @@ function Report({ report }: { report: ReadinessReport }) {
 
       {/* Entity presence honesty note */}
       <section className="rounded-lg border border-border bg-muted/30 p-5">
-        <h3 className="text-sm font-semibold">Entity presence — not yet measured</h3>
+        <h3 className="text-sm font-semibold">Entity presence, not yet measured</h3>
         <p className="mt-1 text-sm text-muted-foreground">{report.entityPresence.note}</p>
       </section>
 
       {/* Methodology / verifiability */}
       <section className="border-t border-border pt-6 text-xs leading-relaxed text-muted-foreground">
         <p className="font-medium text-foreground/80">
-          The AI Visibility Index — how this score is built
+          The AI Visibility Index, how this score is built
         </p>
         <p className="mt-1">
           Your score is computed from <span className="text-foreground/80">40+ individual signals</span>{" "}
@@ -319,10 +319,10 @@ function Report({ report }: { report: ReadinessReport }) {
           <a href={report.fetchedUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
             {report.fetchedUrl}
           </a>{" "}
-          exactly as those engines do — the raw HTML, no JavaScript executed — plus its robots.txt,
+          exactly as those engines do, the raw HTML, no JavaScript executed, plus its robots.txt,
           sitemap.xml and llms.txt, over both HTTP and HTTPS. Weighting follows published 2026 GEO
           research (statistics ≈ +32%, citations ≈ +30%, quotations ≈ +41% inclusion). Every signal
-          above is a direct, reproducible observation of your live site — see &ldquo;What we found&rdquo;
+          above is a direct, reproducible observation of your live site, see &ldquo;What we found&rdquo;
           for the raw evidence. No AI guesses, no numbers we can&apos;t show our work for. This audits
           the homepage; deeper pages and off-site entity signals are assessed separately.
         </p>
@@ -357,7 +357,7 @@ function EvidencePanel({ crawl }: { crawl: CrawlEvidence }) {
     <section>
       <h2 className="text-lg font-semibold tracking-tight">What we found on your site</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        The raw, verbatim evidence behind the score — pulled live from your site, no interpretation.
+        The raw, verbatim evidence behind the score, pulled live from your site, no interpretation.
       </p>
 
       <div className="mt-4 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
@@ -389,7 +389,7 @@ function EvidencePanel({ crawl }: { crawl: CrawlEvidence }) {
         <Fact label="Readable words (no JS)" value={`~${crawl.wordCount}`} />
         <Fact
           label="Indexable"
-          value={crawl.noindex ? "noindex — blocked ✗" : "Yes ✓"}
+          value={crawl.noindex ? "noindex, blocked ✗" : "Yes ✓"}
           tone={crawl.noindex ? "bad" : "good"}
         />
         <Fact
@@ -563,7 +563,7 @@ function FixPlanCta({ domain, issueCount }: { domain: string; issueCount: number
     >
       <div className="min-w-0 flex-1">
         <div className="text-base font-semibold">
-          Get your fix plan{issueCount > 0 ? ` — ${issueCount} issue${issueCount > 1 ? "s" : ""} to fix` : ""}
+          Get your fix plan{issueCount > 0 ? `, ${issueCount} issue${issueCount > 1 ? "s" : ""} to fix` : ""}
         </div>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Prioritized, copy-paste fixes with real examples for {domain}. Free.
@@ -594,7 +594,7 @@ function PremiumFeatures({ aiScore, domain }: { aiScore: number; domain: string 
         </span>
       </div>
       <h2 className="font-display mt-3 text-2xl tracking-tight sm:text-3xl">
-        Go deeper — turn this audit into <em className="text-primary">AI recommendations</em>
+        Go deeper, turn this audit into <em className="text-primary">AI recommendations</em>
       </h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         Two ways we&apos;re building to take you from &ldquo;found the gaps&rdquo; to actually getting cited by AI.
@@ -604,22 +604,22 @@ function PremiumFeatures({ aiScore, domain }: { aiScore: number; domain: string 
         <PremiumCard
           icon={<BarChart3 className="h-5 w-5" />}
           title="AI Rank Check"
-          desc="See whether ChatGPT, Perplexity & Gemini actually recommend you in your category — and which competitors beat you to it."
+          desc="See whether ChatGPT, Perplexity & Gemini actually recommend you in your category, and which competitors beat you to it."
           status={
             rankEligible
-              ? { tone: "good", text: "✓ Your site qualifies — runs with a free account (1 check/week)" }
-              : { tone: "muted", text: `Reach AI-ready (60+) to unlock — your AI score is ${aiScore}` }
+              ? { tone: "good", text: "✓ Your site qualifies, runs with a free account (1 check/week)" }
+              : { tone: "muted", text: `Reach AI-ready (60+) to unlock, your AI score is ${aiScore}` }
           }
         />
         <PremiumCard
           icon={<Sparkles className="h-5 w-5" />}
           title="Personalized AI fix agent"
-          desc="An AI agent reads your site and writes the exact fixes for it — your JSON-LD filled in, FAQ copy drafted, meta rewritten — plus a plan to climb the rankings."
+          desc="An AI agent reads your site and writes the exact fixes for it, your JSON-LD filled in, FAQ copy drafted, meta rewritten, plus a plan to climb the rankings."
           status={{ tone: "muted", text: "Included in a paid plan" }}
         />
       </div>
 
-      {/* The waitlist capture — embedded so the teasers have a clear next step. */}
+      {/* The waitlist capture, embedded so the teasers have a clear next step. */}
       <div className="mt-7 border-t border-primary/20 pt-6">
         <BetaInterest source="beta_report" layout="embedded" domain={domain} />
       </div>

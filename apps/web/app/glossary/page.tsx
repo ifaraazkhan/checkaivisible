@@ -10,7 +10,7 @@ import {
 } from "@/lib/structured-data";
 
 export const metadata: Metadata = {
-  title: "AEO & SEO Glossary — AI visibility terms",
+  title: "AEO & SEO Glossary, AI visibility terms",
   description:
     "Clear definitions of the terms behind AI visibility: AEO, GEO, llms.txt, schema markup, E-E-A-T, crawlability and more.",
   alternates: { canonical: "/glossary" },
@@ -51,7 +51,7 @@ export default function GlossaryIndexPage() {
           The language of <em className="text-primary">AI visibility</em>.
         </h1>
         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-          Plain definitions of the terms behind getting recommended by AI — from AEO and GEO to
+          Plain definitions of the terms behind getting recommended by AI, from AEO and GEO to
           schema markup and E-E-A-T. Each links out to the guides and the{" "}
           <Link href={"/blog" as const} className="text-foreground/90 underline underline-offset-4 hover:text-foreground">
             blog

@@ -30,7 +30,7 @@ export async function generateMetadata({
   if (!t) return {};
   const title = t.abbr ? `${t.term} (${t.abbr})` : t.term;
   return {
-    title: `${title} — definition`,
+    title: `${title}, definition`,
     description: t.short,
     alternates: { canonical: `/glossary/${t.slug}` },
   };
@@ -84,7 +84,7 @@ export default async function GlossaryTermPage({
           <Prose blocks={[{ type: "answer", text: t.answer }, ...t.body]} />
         </div>
 
-        {/* single-question FAQ — matches the FAQPage JSON-LD */}
+        {/* single-question FAQ, matches the FAQPage JSON-LD */}
         <section className="mt-12 border-t border-border pt-8">
           <h2 className="text-base font-medium tracking-tight text-foreground">{t.faq.q}</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t.faq.a}</p>

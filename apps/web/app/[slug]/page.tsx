@@ -19,7 +19,7 @@ export async function generateMetadata({
   if (!data) return {};
   const { ledger } = data;
   return {
-    title: `${ledger.title}, according to AI — live ranking`,
+    title: `${ledger.title}, according to AI, live ranking`,
     description: `Which ${ledger.title.toLowerCase().replace(/^best /, "")} ChatGPT, Gemini and Perplexity actually recommend. Sampled 5× per engine, refreshed weekly, citations included.`,
   };
 }
