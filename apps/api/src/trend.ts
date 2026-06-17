@@ -12,6 +12,7 @@ import {
 import { classifyTheme } from "./theme.js";
 import { refreshCategory } from "./refresh.js";
 import { TIER_DAYS } from "./discovery-scheduler.js";
+import { MAX_LIVE_LEDGERS, MAX_TREND_MINTS_PER_DAY } from "./discovery-limits.js";
 
 // Phase 3 — the trend lane / newsjacking (Planning/category-discovery.md). A fast,
 // separate path so an emerging topic hits a live ledger within hours, not on the
@@ -294,6 +295,13 @@ export async function runTrendLane(
           actedAt: new Date(),
         });
         result.attached.push(existing.slug);
+      } else if (result.minted.length >= MAX_TREND_MINTS_PER_DAY) {
+        // hit the per-day trend/interest mint cap — keep the signal classified so
+        // a later pass can revisit it, but don't mint another ledger today.
+        await markSignal(sig.id, { status: "classified", kind: cls.kind, detail: cls });
+      } else if (liveCats.length >= MAX_LIVE_LEDGERS) {
+        // catalog at its hard ceiling — defer minting until something is retired.
+        await markSignal(sig.id, { status: "classified", kind: cls.kind, detail: cls });
       } else {
         const minted = await mintTrend(cls.phrase);
         if (minted) {

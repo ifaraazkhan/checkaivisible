@@ -9,6 +9,7 @@ import {
   MIN_BRANDS_TO_PROMOTE,
 } from "./category-discovery.js";
 import { runTrendLane, decayTrending } from "./trend.js";
+import { MAX_LIVE_LEDGERS } from "./discovery-limits.js";
 
 // Phase 2 of category auto-discovery (Planning/category-discovery.md): make the
 // feeder run itself. Cadence is EARNED by volatility — measure churn, slot each
@@ -99,10 +100,16 @@ export async function autoPromote(limit = 5): Promise<{ promoted: string[]; reje
     db.select({ slug: schema.categories.slug }).from(schema.categories),
   ]);
   const liveKeys = new Set(liveCats.map((c) => categoryKey(c.slug)));
+  let liveCount = liveCats.length;
 
   const promoted: string[] = [];
   const rejected: string[] = [];
   for (const c of ready) {
+    if (liveCount >= MAX_LIVE_LEDGERS) {
+      // catalog is at its hard ceiling — stop minting, leave the rest probed.
+      console.log(`[auto-promote] at MAX_LIVE_LEDGERS=${MAX_LIVE_LEDGERS} — no new ledgers this run`);
+      break;
+    }
     if ((c.brandsNamed ?? 0) < MIN_BRANDS_TO_PROMOTE) {
       // AI won't name brands → not a real ledger. Reject so we stop re-probing it.
       await rejectCandidate(c.slug);
@@ -121,6 +128,7 @@ export async function autoPromote(limit = 5): Promise<{ promoted: string[]; reje
       await promote(c.slug);
       await scheduleAfterRun(c.slug, false); // set next_run so the tick doesn't double-refresh it
       liveKeys.add(categoryKey(c.slug)); // block a second near-dup in the same run
+      liveCount++; // count toward the MAX_LIVE_LEDGERS ceiling
       promoted.push(c.slug);
     } catch (err) {
       console.error(`[auto-promote] ${c.slug} failed:`, (err as Error).message);
