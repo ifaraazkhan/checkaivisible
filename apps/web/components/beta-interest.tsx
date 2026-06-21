@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sparkles, LineChart, MailCheck, Check, Loader2 } from "lucide-react";
 import { captureEmail } from "@/lib/api";
+import { track } from "@/lib/analytics";
 
 /* What early access unlocks, kept in sync with the report-page teasers. */
 const BENEFITS: { icon: React.ReactNode; text: string }[] = [
@@ -39,6 +40,7 @@ export function BetaInterest({
     setState("submitting");
     try {
       await captureEmail({ email, source, domain });
+      track("beta_interest_submitted", { source, domain: domain ?? null });
       setState("done");
     } catch {
       setState("error");

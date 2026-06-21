@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CategoryTabs } from "@/components/ledger/category-tabs";
 import { LedgerDetailTable } from "@/components/ledger/ledger-detail-table";
+import { LedgerViewTracker } from "@/components/ledger/ledger-view-tracker";
 import { Button } from "@/components/ui/button";
 import { LEDGER_UPDATED_AT, NEXT_REFRESH, type Ledger, type RankedEntry } from "@/lib/ledger-data";
 import { SITE_URL, breadcrumbLd, graph } from "@/lib/structured-data";
@@ -50,6 +51,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
   return (
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+      <LedgerViewTracker slug={ledger.slug} />
       <CategoryTabs active={ledger.slug} />
 
       <div className="mx-auto max-w-[1440px] px-6 pb-24 pt-8 sm:pt-10">
