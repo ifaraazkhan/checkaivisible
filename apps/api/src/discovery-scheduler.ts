@@ -10,6 +10,7 @@ import {
 } from "./category-discovery.js";
 import { runTrendLane, decayTrending } from "./trend.js";
 import { MAX_LIVE_LEDGERS } from "./discovery-limits.js";
+import { revalidateLedgerIndex } from "./lib/revalidate.js";
 
 // Phase 2 of category auto-discovery (Planning/category-discovery.md): make the
 // feeder run itself. Cadence is EARNED by volatility — measure churn, slot each
@@ -186,6 +187,9 @@ export async function runDueCategories(
     } catch (err) {
       console.error(`[scheduler] ${c.slug} failed:`, (err as Error).message);
     }
+  }
+  if (ran.length > 0) {
+    await revalidateLedgerIndex();
   }
   return { ran, remaining: Math.max(0, due.length - batch.length) };
 }

@@ -6,6 +6,7 @@ import { canonicalKey, DisplayPicker } from "./canonical.js";
 import { rankLedger, type LedgerEntryInput } from "./ledger-rank.js";
 import { currentWeekStart } from "./domain-check.js";
 import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { revalidateLedger } from "./lib/revalidate.js";
 
 // Weekly leaderboard refresh for one category: run each engine 5×, persist every
 // per-run mention (business_mentions), then roll up canonicalized appearance
@@ -137,6 +138,10 @@ export async function refreshCategory(
       citationsJson: r.citations,
     })),
   );
+
+  // Tell the web app to drop cached fetches for this ledger so the next visitor
+  // sees fresh data without waiting for the safety-net revalidate window.
+  await revalidateLedger(slug);
 
   return { slug, engines: enginesUsed, businesses: ranked.length };
 }
