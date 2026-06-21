@@ -93,7 +93,16 @@ ledgers.get("/", async (c) => {
   }
   // software first, then alpha by title
   out.sort((a, b) => a.kind.localeCompare(b.kind) || a.title.localeCompare(b.title));
-  return c.json({ ledgers: out });
+  // Engines actually configured on this deploy — derived, never hard-coded, so
+  // the stats strip can never claim more engines than are really firing.
+  const engines = (["chatgpt", "gemini", "perplexity"] as const).filter((p) =>
+    Boolean(
+      process.env[
+        p === "chatgpt" ? "OPENAI_API_KEY" : p === "gemini" ? "GEMINI_API_KEY" : "PERPLEXITY_API_KEY"
+      ],
+    ),
+  );
+  return c.json({ ledgers: out, engines });
 });
 
 // GET /ledgers/detail?slug=best-crm&name=Salesforce — rich per-business detail

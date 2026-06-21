@@ -91,7 +91,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
           </p>
           <p>
             Sources shown are the citations the engines themselves point to. Placement is never for sale.
-            Sample data until public launch.{" "}
+            Week-over-week movement appears as runs accrue.{" "}
             <Link href={"/#method" as const} className="text-foreground/80 underline underline-offset-4 hover:text-foreground">
               Full method
             </Link>

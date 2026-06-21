@@ -144,7 +144,11 @@ function Row({
       ))}
 
       <span role="cell" aria-label="8-week rank trend" className="hidden justify-end lg:flex">
-        <Sparkline history={entry.history} gold={first} reduce={reduce} />
+        {entry.history.length >= 3 ? (
+          <Sparkline history={entry.history} gold={first} reduce={reduce} />
+        ) : (
+          <span className="font-mono text-xs text-muted-foreground/50">—</span>
+        )}
       </span>
 
       <Delta delta={entry.delta} />

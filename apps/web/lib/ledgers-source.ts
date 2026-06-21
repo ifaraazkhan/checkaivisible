@@ -111,6 +111,18 @@ export async function fetchLedgerIndex(): Promise<LedgerIndexItem[]> {
   }
 }
 
+export async function fetchEngines(): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_BASE}/ledgers`, {
+      next: { revalidate: REVALIDATE_SECONDS, tags: ["ledgers", "ledger-index"] },
+    });
+    if (!res.ok) return [];
+    return ((await res.json()) as { engines?: string[] }).engines ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchBusinessDetail(
   slug: string,
   name: string,
