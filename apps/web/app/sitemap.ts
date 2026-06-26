@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/terms`, lastModified: now, priority: 0.3 },
   ];
 
-  const index = await fetchLedgerIndex();
+  const { items: index } = await fetchLedgerIndex();
   const ledgerPages: MetadataRoute.Sitemap = index
     .filter((l) => l.kind === "software")
     .map((l) => ({

@@ -10,7 +10,7 @@ import { MethodBlueprint } from "@/components/ledger/method-blueprint";
 import { Tape } from "@/components/ledger/tape";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/json-ld";
-import { NEXT_REFRESH } from "@/lib/ledger-data";
+import { nextRefreshLabel } from "@cav/shared/refresh-time";
 import { fetchLedgerIndex, fetchEngines } from "@/lib/ledgers-source";
 import {
   SITE_URL,
@@ -24,6 +24,10 @@ import {
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
+
+// StatsBar uses nextRefreshLabel() which must compute per request, not be baked
+// into the static build at deploy time.
+export const dynamic = "force-dynamic";
 
 // Visible FAQ — the JSON-LD below is built from the SAME copy (schema must match
 // what the page shows). Question-shaped headings + a real FAQ are core AEO signals.
@@ -121,7 +125,7 @@ function Beta() {
    Numbers are derived from the live API so nothing is fabricated — a trust product
    can't ship invented counts. Falls back gracefully if the API is unreachable. */
 async function StatsBar() {
-  const [index, engines] = await Promise.all([fetchLedgerIndex(), fetchEngines()]);
+  const [{ items: index }, engines] = await Promise.all([fetchLedgerIndex(), fetchEngines()]);
   const ledgerCount = index.filter((l) => l.kind === "software").length;
   const trendingCount = index.filter((l) => l.trending).length;
 
@@ -131,7 +135,7 @@ async function StatsBar() {
     ...(engines.length > 0 ? [{ label: "Engines", value: String(engines.length) }] : []),
     { label: "Samples", value: "5× per prompt" },
     { label: "Refreshed", value: "weekly" },
-    { label: "Next run", value: NEXT_REFRESH, gold: true },
+    { label: "Next run", value: nextRefreshLabel(), gold: true },
   ];
 
   return (

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LedgerPageView } from "@/components/ledger/ledger-page-view";
 import { fetchLedger } from "@/lib/ledgers-source";
+import { displayCategoryTitle, displayCategoryNoun } from "@cav/shared/category-title";
 
 // Software ledgers live at the root: /best-crm, /best-ai-coding-tool, …
 // Local ledgers (/austin/restaurants) are handled by [slug]/[sub].
@@ -18,9 +19,11 @@ export async function generateMetadata({
   const data = await fetchLedger(slug);
   if (!data) return {};
   const { ledger } = data;
+  const title = displayCategoryTitle(ledger.title);
+  const noun = displayCategoryNoun(ledger.title);
   return {
-    title: `${ledger.title}, according to AI, live ranking`,
-    description: `Which ${ledger.title.toLowerCase().replace(/^best /, "")} ChatGPT, Gemini and Perplexity actually recommend. Sampled 5× per engine, refreshed weekly, citations included.`,
+    title: `${title}, according to AI, live ranking`,
+    description: `Which ${noun} ChatGPT, Gemini and Perplexity actually recommend. Sampled 5× per engine, refreshed weekly, citations included.`,
   };
 }
 

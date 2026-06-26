@@ -19,10 +19,12 @@
     "migrate:suggestions": "tsx src/scripts/migrate-suggestions.ts",
     "tag:themes": "tsx src/scripts/tag-themes.ts",
     "audit-self": "tsx src/scripts/audit-self.ts",
+    "backfill:titles": "tsx src/scripts/backfill-category-titles.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cav/db": "workspace:*",
+    "@cav/shared": "workspace:*",
     "@google/genai": "^2.8.0",
     "@hono/node-server": "^1.13.7",
     "cheerio": "^1.2.0",

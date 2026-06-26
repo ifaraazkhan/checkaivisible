@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { CategoryTabs } from "@/components/ledger/category-tabs";
 import { LedgerSearch } from "@/components/ledger/ledger-search";
-import { LEDGER_UPDATED_AT, NEXT_REFRESH } from "@/lib/ledger-data";
+import { displayCategoryTitle } from "@cav/shared/category-title";
+import { formatUpdated, nextRefreshLabel } from "@cav/shared/refresh-time";
 import { fetchLedgerIndex, type LedgerIndexItem } from "@/lib/ledgers-source";
 
 export const dynamic = "force-dynamic";
@@ -15,9 +16,20 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardsPage() {
-  const ledgers = await fetchLedgerIndex();
+  const { items: ledgers, latestWeekStart } = await fetchLedgerIndex();
   const software = ledgers.filter((l) => l.kind === "software");
   const local = ledgers.filter((l) => l.kind === "local");
+  // Three-tier fallback: envelope field → max per-item → hide.
+  const fallbackDate =
+    latestWeekStart ??
+    ledgers
+      .map((l) => l.weekStart)
+      .filter((w): w is string => Boolean(w))
+      .sort()
+      .at(-1) ??
+    null;
+  const updatedAt = formatUpdated(fallbackDate);
+  const nextRun = nextRefreshLabel();
 
   return (
     <main>
@@ -28,17 +40,19 @@ export default async function LeaderboardsPage() {
             The ledgers, <em className="text-primary">all of them</em>
           </h1>
           <div className="font-mono text-[11px] leading-relaxed text-muted-foreground">
+            {updatedAt && (
+              <p>
+                updated <span className="tabular-nums text-foreground/80">{updatedAt}</span>
+              </p>
+            )}
             <p>
-              updated <span className="tabular-nums text-foreground/80">{LEDGER_UPDATED_AT}</span>
-            </p>
-            <p>
-              next run <span className="tabular-nums text-primary">{NEXT_REFRESH}</span>
+              next run <span className="tabular-nums text-primary">{nextRun}</span>
             </p>
           </div>
         </div>
         <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Every ledger is its own page, refreshed weekly. {ledgers.length} open now; 60 at public
-          launch. The current #1 is shown beside each.
+          Every ledger is its own page, refreshed weekly. {ledgers.length} open now. The current #1
+          is shown beside each.
         </p>
 
         <div className="mt-8">
@@ -86,7 +100,7 @@ function Group({ title, ledgers }: { title: string; ledgers: LedgerIndexItem[] }
               className="flex min-h-14 items-center justify-between gap-4 py-4 transition-colors group-hover:bg-secondary/40"
             >
               <span className="text-[15px] font-medium tracking-tight">
-                {ledger.title}
+                {displayCategoryTitle(ledger.title)}
                 {ledger.trending && (
                   <span className="ml-2 rounded-sm bg-primary/15 px-1.5 py-0.5 align-middle font-mono text-[9px] font-semibold uppercase tracking-wider text-primary">
                     Hot
@@ -99,8 +113,14 @@ function Group({ title, ledgers }: { title: string; ledgers: LedgerIndexItem[] }
                 )}
               </span>
               <span className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
-                {ledger.top && <span className="font-mono text-xs text-primary">1</span>}
-                {ledger.top ?? ", "}
+                {ledger.top ? (
+                  <>
+                    <span className="font-mono text-xs text-primary">#1</span>
+                    <span>{displayCategoryTitle(ledger.top)}</span>
+                  </>
+                ) : (
+                  <span className="font-mono text-xs italic">awaiting first run</span>
+                )}
                 <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </span>
             </Link>

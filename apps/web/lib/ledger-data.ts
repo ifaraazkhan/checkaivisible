@@ -20,6 +20,8 @@ export type Ledger = {
   kind: "software" | "local";
   city?: string;
   trending?: boolean; // newsjacked → Hot badge (Phase 3 trend lane)
+  /** ISO timestamp of the latest snapshot for this category. Null when no runs yet. */
+  weekStart?: string | null;
   entries: LedgerEntry[];
 };
 
@@ -245,6 +247,3 @@ export function getLedger(slug: string): Ledger | undefined {
 
 export const SOFTWARE_LEDGERS = LEDGERS.filter((l) => l.kind === "software");
 export const LOCAL_LEDGERS = LEDGERS.filter((l) => l.kind === "local");
-
-export const LEDGER_UPDATED_AT = "2026-06-10";
-export const NEXT_REFRESH = "Mon 09:00 UTC";

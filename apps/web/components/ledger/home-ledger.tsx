@@ -8,7 +8,9 @@ import { BusinessDetail } from "@/components/ledger/business-detail";
 import { SuggestCategory } from "@/components/ledger/suggest-category";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LEDGER_UPDATED_AT, NEXT_REFRESH, type RankedEntry } from "@/lib/ledger-data";
+import { type RankedEntry } from "@/lib/ledger-data";
+import { displayCategoryTitle } from "@cav/shared/category-title";
+import { formatUpdated, nextRefreshLabel } from "@cav/shared/refresh-time";
 import {
   fetchLedger,
   fetchLedgerIndex,
@@ -28,14 +30,15 @@ export function HomeLedger() {
   const [active, setActive] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("");
   const [entries, setEntries] = useState<RankedEntry[]>([]);
+  const [weekStart, setWeekStart] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [reloadKey, setReloadKey] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchLedgerIndex().then((list) => {
-      setIndex(list);
-      if (list[0]) setActive(list[0].slug);
+    fetchLedgerIndex().then(({ items }) => {
+      setIndex(items);
+      if (items[0]) setActive(items[0].slug);
     });
   }, []);
 
@@ -51,6 +54,7 @@ export function HomeLedger() {
       }
       setTitle(data.ledger.title);
       setEntries(data.entries);
+      setWeekStart(data.ledger.weekStart ?? null);
       setStatus("ready");
     });
     return () => {
@@ -81,7 +85,7 @@ export function HomeLedger() {
               }`}
             >
               {l.kind === "local" && l.city ? `${l.city.split(",")[0]} · ` : ""}
-              {l.title.replace(/^Best /, "")}
+              {displayCategoryTitle(l.title).replace(/^Best /, "")}
             </button>
           );
         })}
@@ -101,10 +105,10 @@ export function HomeLedger() {
       {/* active ledger header */}
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 px-4 pt-5 sm:px-5">
         <h2 className="text-xl font-medium tracking-tight sm:text-2xl">
-          {title || "Loading…"} <span className="text-muted-foreground">, according to AI</span>
+          {title ? displayCategoryTitle(title) : "Loading…"} <span className="text-muted-foreground">, according to AI</span>
         </h2>
         <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-          updated {LEDGER_UPDATED_AT} · next {NEXT_REFRESH}
+          {formatUpdated(weekStart) && <>updated {formatUpdated(weekStart)} · </>}next {nextRefreshLabel()}
         </span>
       </div>
 

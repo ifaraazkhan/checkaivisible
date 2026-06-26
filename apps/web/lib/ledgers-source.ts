@@ -49,6 +49,12 @@ export type LedgerIndexItem = {
   theme: string | null;
   trending: boolean;
   top: string | null;
+  weekStart?: string | null;
+};
+
+export type LedgerIndexResponse = {
+  items: LedgerIndexItem[];
+  latestWeekStart: string | null;
 };
 
 export type BusinessDetail = {
@@ -91,6 +97,7 @@ export async function fetchLedger(
       kind: d.kind,
       city: d.city ?? undefined,
       trending: d.trending ?? false,
+      weekStart: d.weekStart ?? null,
       entries: [],
     };
     return { ledger, entries: d.entries.map(toRanked) };
@@ -99,15 +106,22 @@ export async function fetchLedger(
   }
 }
 
-export async function fetchLedgerIndex(): Promise<LedgerIndexItem[]> {
+export async function fetchLedgerIndex(): Promise<LedgerIndexResponse> {
   try {
     const res = await fetch(`${API_BASE}/ledgers`, {
       next: { revalidate: REVALIDATE_SECONDS, tags: ["ledgers", "ledger-index"] },
     });
-    if (!res.ok) return [];
-    return ((await res.json()) as { ledgers: LedgerIndexItem[] }).ledgers;
+    if (!res.ok) return { items: [], latestWeekStart: null };
+    const body = (await res.json()) as {
+      ledgers?: LedgerIndexItem[];
+      latestWeekStart?: string | null;
+    };
+    return {
+      items: body.ledgers ?? [],
+      latestWeekStart: body.latestWeekStart ?? null,
+    };
   } catch {
-    return [];
+    return { items: [], latestWeekStart: null };
   }
 }
 

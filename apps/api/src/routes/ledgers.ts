@@ -89,10 +89,17 @@ ledgers.get("/", async (c) => {
       theme: cat.theme,
       trending: cat.trending,
       top: data?.entries[0]?.name ?? null,
+      weekStart: data?.weekStart ?? null,
     });
   }
   // software first, then alpha by title
   out.sort((a, b) => a.kind.localeCompare(b.kind) || a.title.localeCompare(b.title));
+  // Single source-of-truth for "most recent refresh anywhere", so the index page
+  // doesn't have to scan per-item weekStarts on the client.
+  const [latest] = await db
+    .select({ w: sql<string | null>`max(${schema.leaderboardSnapshots.weekStart})` })
+    .from(schema.leaderboardSnapshots);
+  const latestWeekStart = latest?.w ?? null;
   // Engines actually configured on this deploy — derived, never hard-coded, so
   // the stats strip can never claim more engines than are really firing.
   const engines = (["chatgpt", "gemini", "perplexity"] as const).filter((p) =>
@@ -102,7 +109,7 @@ ledgers.get("/", async (c) => {
       ],
     ),
   );
-  return c.json({ ledgers: out, engines });
+  return c.json({ ledgers: out, engines, latestWeekStart });
 });
 
 // GET /ledgers/detail?slug=best-crm&name=Salesforce — rich per-business detail

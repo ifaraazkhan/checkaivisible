@@ -1,4 +1,5 @@
 import { getDb, schema, eq, desc, sql } from "@cav/db";
+import { displayCategoryTitle } from "@cav/shared/category-title";
 import type { Platform } from "./types.js";
 import { SYSTEM_PROMPT } from "./llm/prompts.js";
 import { firstAvailableEngine } from "./llm/engines.js";
@@ -111,7 +112,9 @@ export function categoryKey(slugOrPhrase: string): string {
 }
 
 export function titleCase(phrase: string): string {
-  return phrase.replace(/\b\w/g, (c) => c.toUpperCase());
+  // Acronym-aware casing lives in @cav/shared so the UI and the save-path
+  // share one table. See packages/shared/src/category-title.ts.
+  return displayCategoryTitle(phrase);
 }
 
 export function toQuery(phrase: string): string {

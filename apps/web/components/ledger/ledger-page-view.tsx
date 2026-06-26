@@ -4,7 +4,9 @@ import { CategoryTabs } from "@/components/ledger/category-tabs";
 import { LedgerDetailTable } from "@/components/ledger/ledger-detail-table";
 import { LedgerViewTracker } from "@/components/ledger/ledger-view-tracker";
 import { Button } from "@/components/ui/button";
-import { LEDGER_UPDATED_AT, NEXT_REFRESH, type Ledger, type RankedEntry } from "@/lib/ledger-data";
+import { type Ledger, type RankedEntry } from "@/lib/ledger-data";
+import { displayCategoryTitle, displayCategoryNoun } from "@cav/shared/category-title";
+import { formatUpdated, nextRefreshLabel } from "@cav/shared/refresh-time";
 import { SITE_URL, breadcrumbLd, graph } from "@/lib/structured-data";
 
 // Join names into a natural-language list: "A", "A and B", "A, B and C".
@@ -20,18 +22,21 @@ function listSentence(names: string[]): string {
   live below the data, not above it. Entries come from the live API.
 */
 export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: RankedEntry[] }) {
-  const subject = ledger.title.toLowerCase().replace(/^best /, "");
+  const title = displayCategoryTitle(ledger.title);
+  const subject = displayCategoryNoun(ledger.title);
+  const updatedAt = formatUpdated(ledger.weekStart);
+  const nextRun = nextRefreshLabel();
   // A single citable sentence — the direct answer an AI engine can lift verbatim.
   const topNames = entries.slice(0, 3).map((e) => e.name);
   const directAnswer =
     topNames.length > 0
-      ? `As of ${LEDGER_UPDATED_AT}, ChatGPT, Gemini and Perplexity most often recommend ${listSentence(topNames)} for ${subject}.`
+      ? `${updatedAt ? `As of ${updatedAt}, ` : ""}ChatGPT, Gemini and Perplexity most often recommend ${listSentence(topNames)} for ${subject}.`
       : null;
 
   const ld = graph(
     {
       "@type": "ItemList",
-      name: `${ledger.title}, according to AI`,
+      name: `${title}, according to AI`,
       description: `Which ${subject} ChatGPT, Gemini and Perplexity actually recommend, sampled 5× weekly.`,
       itemListOrder: "https://schema.org/ItemListOrderDescending",
       numberOfItems: entries.length,
@@ -44,7 +49,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
     breadcrumbLd([
       { name: "Home", url: SITE_URL },
       { name: "Ledgers", url: `${SITE_URL}/leaderboards` },
-      { name: ledger.title, url: `${SITE_URL}/${ledger.slug}` },
+      { name: title, url: `${SITE_URL}/${ledger.slug}` },
     ]),
   );
 
@@ -58,7 +63,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
         {/* one-line header, the table is the page */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-10 gap-y-2">
           <h1 className="font-display text-balance text-3xl sm:text-4xl">
-            {ledger.title}
+            {title}
             {ledger.trending && (
               <span className="ml-2.5 rounded-sm bg-primary/15 px-2 py-1 align-middle font-mono text-[11px] font-semibold uppercase tracking-wider text-primary">
                 Hot
@@ -67,7 +72,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
             <span className="text-muted-foreground">, according to AI</span>
           </h1>
           <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-            updated {LEDGER_UPDATED_AT} · next run <span className="text-primary">{NEXT_REFRESH}</span>
+            {updatedAt && <>updated {updatedAt} · </>}next run <span className="text-primary">{nextRun}</span>
           </span>
         </div>
 

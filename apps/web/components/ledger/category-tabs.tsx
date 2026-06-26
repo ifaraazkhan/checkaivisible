@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchLedgerIndex } from "@/lib/ledgers-source";
+import { displayCategoryTitle } from "@cav/shared/category-title";
 import { SuggestCategory } from "./suggest-category";
 
 /*
@@ -8,7 +9,7 @@ import { SuggestCategory } from "./suggest-category";
   Category list comes from the live API.
 */
 export async function CategoryTabs({ active }: { active?: string }) {
-  const ledgers = await fetchLedgerIndex();
+  const { items: ledgers } = await fetchLedgerIndex();
   return (
     <nav aria-label="Ledger categories" className="border-b border-border">
       <div className="mx-auto flex max-w-[1440px] items-center gap-1.5 overflow-x-auto px-6 py-3 [scrollbar-width:none]">
@@ -26,7 +27,7 @@ export async function CategoryTabs({ active }: { active?: string }) {
               }`}
             >
               {ledger.kind === "local" && ledger.city ? `${ledger.city.split(",")[0]} · ` : ""}
-              {ledger.title.replace(/^Best /, "")}
+              {displayCategoryTitle(ledger.title).replace(/^Best /, "")}
             </Link>
           );
         })}
