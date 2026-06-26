@@ -15,6 +15,10 @@ describe("displayCategoryTitle", () => {
     ["best seo tool", "Best SEO Tool"],
     ["best erp for smb", "Best ERP for SMB"],
     ["Best CRM", "Best CRM"], // idempotent
+    // Connectors stay lowercase even when DB-cased title already has them capitalised.
+    ["Best AI Tool For Image Generation", "Best AI Tool for Image Generation"],
+    ["Best CRM For Small Business", "Best CRM for Small Business"],
+    ["Best Project Management Tool With AI", "Best Project Management Tool with AI"],
     ["", ""],
     // Preserve intentional brand casing
     ["best GitHub alternative", "Best GitHub Alternative"],

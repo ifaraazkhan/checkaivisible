@@ -27,11 +27,13 @@ function fixWord(raw: string, isFirst: boolean): string {
   const lower = raw.toLowerCase();
   const acr = ACRONYM_MAP.get(lower);
   if (acr) return acr;
+  // Connector words mid-title lowercase BEFORE the mixed-case preserve check,
+  // otherwise "For" (mixed case) sneaks through unchanged inside DB-cased titles.
+  if (!isFirst && CONNECTORS.has(lower)) return lower;
   // Preserve intentional mixed-case brand names: GitHub, iPhone, macOS.
   // Mixed-case = has BOTH an uppercase and a lowercase letter. This excludes
   // SHOUTED words ("BEST") which should still normalize.
   if (/[A-Z]/.test(raw) && /[a-z]/.test(raw)) return raw;
-  if (!isFirst && CONNECTORS.has(lower)) return lower;
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
