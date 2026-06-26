@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getDb, schema, desc, eq } from "@cav/db";
 import { scrapeBusiness } from "../scraper.js";
 import { findBusinessByQuery } from "../places.js";
-import { checkAndRecordIp, verifyTurnstile } from "../rate-limit.js";
+import { checkAndRecordIp, clientIp, verifyTurnstile } from "../rate-limit.js";
 import { enqueueAudit } from "../worker.js";
 import type { BusinessProfile } from "../types.js";
 import { CATEGORIES } from "../types.js";
@@ -88,10 +88,7 @@ audit.post("/", async (c) => {
     return c.json({ error: "invalid_input", details: parsed.error.flatten() }, 400);
   }
 
-  const ip =
-    c.req.header("cf-connecting-ip") ??
-    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown";
+  const ip = clientIp({ get: (h) => c.req.header(h) ?? null });
 
   const captcha = await verifyTurnstile(parsed.data.turnstileToken, ip);
   if (!captcha) {

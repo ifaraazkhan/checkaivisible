@@ -5,7 +5,7 @@ import { LedgerDetailTable } from "@/components/ledger/ledger-detail-table";
 import { LedgerViewTracker } from "@/components/ledger/ledger-view-tracker";
 import { Button } from "@/components/ui/button";
 import { type Ledger, type RankedEntry } from "@/lib/ledger-data";
-import { displayCategoryTitle, displayCategoryNoun } from "@cav/shared/category-title";
+import { displayCategoryTitle, displayCategoryNoun, displayCategoryQuery } from "@cav/shared/category-title";
 import { formatUpdated, nextRefreshLabel } from "@cav/shared/refresh-time";
 import { SITE_URL, breadcrumbLd, graph } from "@/lib/structured-data";
 
@@ -90,7 +90,7 @@ export function LedgerPageView({ ledger, entries }: { ledger: Ledger; entries: R
         <div className="mt-10 grid gap-x-16 gap-y-4 border-t border-border pt-8 text-sm leading-relaxed text-muted-foreground md:grid-cols-2">
           <p>
             Every week we ask ChatGPT, Gemini and Perplexity{" "}
-            <span className="font-mono text-xs text-foreground/80">&ldquo;{ledger.query}&rdquo;</span>, five
+            <span className="font-mono text-xs text-foreground/80">&ldquo;{displayCategoryQuery(ledger.title)}&rdquo;</span>, five
             times each, across ~20 phrasings. Score = how often a name appears in the answers; n/5 = mentioned
             in n of 5 runs per engine.
           </p>

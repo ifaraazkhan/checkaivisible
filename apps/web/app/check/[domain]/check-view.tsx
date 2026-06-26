@@ -134,7 +134,7 @@ function Scanning({
       </div>
       <h1 className="mt-4 font-mono text-2xl font-semibold tracking-tight sm:text-3xl">{domain}</h1>
       <p className="mt-2 text-muted-foreground">
-        Reading the site the way ChatGPT, Perplexity, Gemini and Claude would, no JavaScript, just
+        Reading the site the way ChatGPT, Gemini and Perplexity would, no JavaScript, just
         the raw HTML their crawlers receive.
       </p>
 
@@ -314,7 +314,7 @@ function Report({ report }: { report: ReadinessReport }) {
         </p>
         <p className="mt-1">
           Your score is computed from <span className="text-foreground/80">40+ individual signals</span>{" "}
-          across 7 pillars, modeled on how ChatGPT, Perplexity, Gemini and Claude actually crawl,
+          across 7 pillars, modeled on how ChatGPT, Gemini and Perplexity actually crawl,
           parse and cite the web. We fetched{" "}
           <a href={report.fetchedUrl} target="_blank" rel="noreferrer" className="underline underline-offset-2">
             {report.fetchedUrl}

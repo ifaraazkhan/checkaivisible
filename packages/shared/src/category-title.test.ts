@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { displayCategoryTitle, displayCategoryNoun } from "./category-title.js";
+import { displayCategoryTitle, displayCategoryNoun, displayCategoryQuery } from "./category-title.js";
 
 describe("displayCategoryTitle", () => {
   it.each([
@@ -38,5 +38,33 @@ describe("displayCategoryNoun", () => {
     ["Best GitHub Alternative", "GitHub Alternative"],
   ])("%s → %s", (input, expected) => {
     expect(displayCategoryNoun(input)).toBe(expected);
+  });
+});
+
+describe("displayCategoryQuery", () => {
+  it.each([
+    // Singular head nouns → "What is the best …?"
+    ["Best CRM", "What is the best CRM?"],
+    ["best crm", "What is the best CRM?"],
+    ["Best AI Coding Assistant", "What is the best AI coding assistant?"],
+    ["Best Note-Taking App", "What is the best note-taking app?"],
+    ["Best Email Marketing Tool", "What is the best email marketing tool?"],
+    ["Best Project Management Software", "What is the best project management software?"],
+    // Plural head nouns → "What are the best …?"
+    ["Best Email Marketing Platforms", "What are the best email marketing platforms?"],
+    ["Best AI Tools", "What are the best AI tools?"],
+    ["Best CRMs", "What are the best CRMs?"],
+    // Qualifier ("for/in/with") doesn't make the head plural.
+    ["Best AI Tool for Image Generation", "What is the best AI tool for image generation?"],
+    ["Best CRM for Real Estate", "What is the best CRM for real estate?"],
+    // -ss/-us/-is endings stay singular.
+    ["Best Business Intelligence Software", "What is the best business intelligence software?"],
+    ["Best Analysis Tool", "What is the best analysis tool?"],
+    // Acronyms ending in S stay singular.
+    ["Best CMS", "What is the best CMS?"],
+    ["Best SaaS Tool", "What is the best SaaS tool?"],
+    ["", ""],
+  ])("%s → %s", (input, expected) => {
+    expect(displayCategoryQuery(input)).toBe(expected);
   });
 });

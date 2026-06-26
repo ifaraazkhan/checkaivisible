@@ -58,3 +58,51 @@ export function displayCategoryNoun(rawTitle: string): string {
   const t = displayCategoryTitle(rawTitle);
   return t.replace(/^Best\s+/i, "");
 }
+
+// "best" is dropped before plural detection; "for/in/with/…" splits off any
+// trailing qualifier so the HEAD of the noun phrase (e.g. "tool" in
+// "best AI tool for image generation") is what we agree the verb with.
+const QUERY_QUALIFIER_SPLIT = /\s+(?:for|in|with|on|to|by|of)\s+/i;
+// Endings that look plural but are singular nouns (analysis, business, status,
+// mathematics, campus, …). Acronyms like CMS / SaaS are caught by ACRONYM_MAP.
+const SINGULAR_ENDINGS = /(ss|us|is|os|as|ics)$/i;
+
+function headNoun(rawTitle: string): string {
+  const stripped = rawTitle.toLowerCase().trim().replace(/^best\s+/, "");
+  const head = stripped.split(QUERY_QUALIFIER_SPLIT)[0] ?? stripped;
+  const words = head.trim().split(/\s+/);
+  return words[words.length - 1] ?? "";
+}
+
+function isPluralNoun(word: string): boolean {
+  if (!word) return false;
+  if (ACRONYM_MAP.has(word.toLowerCase())) return false;
+  if (SINGULAR_ENDINGS.test(word)) return false;
+  return /s$/i.test(word);
+}
+
+/** Build the natural "What is/are the best X?" question for a category title.
+ *  Plural-aware so plural head nouns get "are" instead of "is". Acronyms in the
+ *  noun stay upper-case ("CRM"), pluralized acronyms preserve their case
+ *  ("CRMs"), and everything else mirrors the seeded style
+ *  ("best CRM", "best email marketing platforms"). */
+export function displayCategoryQuery(rawTitle: string): string {
+  if (!rawTitle) return "";
+  const lower = rawTitle.toLowerCase().trim().replace(/^best\s+/, "");
+  if (!lower) return "";
+  const noun = lower
+    .split(/(\s+)/)
+    .map((p) => {
+      if (/^\s+$/.test(p)) return p;
+      const acr = ACRONYM_MAP.get(p);
+      if (acr) return acr;
+      if (p.endsWith("s")) {
+        const sing = ACRONYM_MAP.get(p.slice(0, -1));
+        if (sing) return `${sing}s`;
+      }
+      return p;
+    })
+    .join("");
+  const verb = isPluralNoun(headNoun(rawTitle)) ? "are" : "is";
+  return `What ${verb} the best ${noun}?`;
+}

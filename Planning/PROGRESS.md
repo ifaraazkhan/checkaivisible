@@ -25,9 +25,9 @@ Useful API scripts (`pnpm --filter @cav/api <script>`):
 - `sample chatgpt "best CRM software"` — full 5-run cycle + aggregated metadata
 - `refresh <slug>` — LIVE weekly refresh for one category (real engine calls)
 
-## Keys status (in apps/api/.env)
-- ✅ `OPENAI_API_KEY`, ✅ `GEMINI_API_KEY` (works — `AIza` not required, current value is valid)
-- ❌ `PERPLEXITY_API_KEY` (missing → Perplexity skipped; scores cap at 67% with 2/3 engines)
+## Keys status
+- ✅ Prod (Railway): `OPENAI_API_KEY`, `GEMINI_API_KEY`, `PERPLEXITY_API_KEY` — all three engines run in the weekly refresh.
+- ⚠️ Local (`apps/api/.env`): usually only `OPENAI_API_KEY` + `GEMINI_API_KEY` are populated; Perplexity is skipped locally without failing.
 - ❌ Google OAuth, Dodo Payments, Resend, Places — intentionally parked for now
 - Payments provider = **Dodo Payments** (NOT Stripe). Schema columns are provider-neutral.
 
@@ -88,9 +88,8 @@ weekly limit, returns 402 upgrade) and `GET /check/:domain`.
 - Note: business detail is only populated for categories that have been `refresh`ed (best-crm). Seeded categories show "run a refresh" message.
 
 ## NEXT (in priority order)
-1. **Add `PERPLEXITY_API_KEY`** → re-`refresh` so all 3 engines count (or normalize score by engines-run).
-2. **Stages 3–5 (need keys)**: Google login (Auth.js, `apps/web`), Dodo Payments checkout+webhook, Resend email delivery + weekly re-check. See launch-monetization.md.
-3. **Production worker / scheduler** for the weekly refresh across all categories (currently manual via `pnpm refresh`).
-4. **Expand prompts**: refresh uses the category's single `query`; the ~20 intent-archetype prompts per category are not built yet.
-5. **SSG/SEO**: category pages are `force-dynamic` for now; revisit static generation + sitemap from live index for launch.
-6. Optional: fuzzy second-pass on canonicalization; per-business citation attribution.
+1. **Stages 3–5 (need keys)**: Google login (Auth.js, `apps/web`), Dodo Payments checkout+webhook, Resend email delivery + weekly re-check. See launch-monetization.md.
+2. **Production worker / scheduler** for the weekly refresh across all categories (currently manual via `pnpm refresh`).
+3. **Expand prompts**: refresh uses the category's single `query`; the ~20 intent-archetype prompts per category are not built yet.
+4. **SSG/SEO**: category pages are `force-dynamic` for now; revisit static generation + sitemap from live index for launch.
+5. Optional: fuzzy second-pass on canonicalization; per-business citation attribution.

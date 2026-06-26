@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb, schema, sql } from "@cav/db";
 import { sendEmail } from "../email/client.js";
 import { leadNotifyEmail } from "../email/templates.js";
+import { checkAndRecordRoute, clientIp } from "../rate-limit.js";
 
 export const suggestions = new Hono();
 
@@ -31,6 +32,14 @@ suggestions.post("/", async (c) => {
   const parsed = suggestSchema.safeParse(body);
   if (!parsed.success) {
     return c.json({ error: "invalid_input", details: parsed.error.flatten() }, 400);
+  }
+
+  // Per-IP throttle on top of the existing (slug,email) dedupe — stops a single
+  // IP from astroturfing demand with many disposable email addresses.
+  const ip = clientIp({ get: (h) => c.req.header(h) ?? null });
+  const rate = await checkAndRecordRoute("suggestion", ip);
+  if (!rate.ok) {
+    return c.json({ error: "rate_limited", retryAfterSec: rate.retryAfterSec }, 429);
   }
 
   const label = parsed.data.category.trim();

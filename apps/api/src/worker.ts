@@ -10,7 +10,7 @@ import { extractMentions } from "./llm/parse.js";
 const ENGINE: Record<Platform, (prompt: string) => Promise<LlmResponse>> = ENGINE_BY_PLATFORM;
 import { detectMention } from "./mention.js";
 import { computeScore } from "./score.js";
-import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { confirmSpend, releaseSpend, reserveSpend } from "./spend-cap.js";
 import { analyzeDomain } from "./readiness/analyze.js";
 
 export const AUDIT_QUEUE = "audit";
@@ -70,16 +70,25 @@ async function getCachedOrFetch(
     };
   }
 
-  if (!(await canSpend(platform))) {
+  // Atomic reserve: the row insert IS the budget commit. If two workers race,
+  // the second sees the new total under the advisory lock.
+  const reservation = await reserveSpend(platform);
+  if (!reservation.ok) {
     throw new Error(`spend_cap_exceeded:${platform}`);
   }
 
   const t0 = Date.now();
-  const response = await ENGINE[platform](prompt);
+  let response: LlmResponse;
+  try {
+    response = await ENGINE[platform](prompt);
+  } catch (err) {
+    // LLM call failed before we got a response — refund the reservation.
+    await releaseSpend(reservation.id).catch(() => {});
+    throw err;
+  }
   const elapsed = Date.now() - t0;
 
-  const apiKeyId = await getInternalApiKeyId();
-  await recordSpend(apiKeyId, platform, elapsed, 200).catch((e) =>
+  await confirmSpend(reservation.id, elapsed, 200).catch((e) =>
     console.error("[spend]", e),
   );
 
@@ -129,9 +138,19 @@ async function runAudit(data: AuditJobData): Promise<void> {
 
   const prompts = generatePrompts(business.category, business.city);
   const mentions: MentionResult[] = [];
+  // Track per-platform success so we can flag audits that only saw partial
+  // coverage (e.g. one engine errored out for every prompt). The breakdown is
+  // returned in the report; the UI can decorate the score with "based on N/3
+  // engines" instead of silently presenting a lopsided number as a verdict.
+  const platformSuccess: Record<string, number> = Object.fromEntries(
+    PLATFORMS.map((p) => [p, 0]),
+  );
+  let totalAttempts = 0;
+  let totalSuccesses = 0;
 
   for (const prompt of prompts) {
     for (const platform of PLATFORMS) {
+      totalAttempts++;
       try {
         const { response, cacheId } = await getCachedOrFetch(
           business.city,
@@ -142,6 +161,8 @@ async function runAudit(data: AuditJobData): Promise<void> {
         );
         const mention = detectMention(business.name, response);
         mentions.push(mention);
+        platformSuccess[platform] = (platformSuccess[platform] ?? 0) + 1;
+        totalSuccesses++;
 
         await db.insert(schema.results).values({
           auditId,
@@ -159,12 +180,26 @@ async function runAudit(data: AuditJobData): Promise<void> {
 
   const score = computeScore(mentions);
 
+  // Coverage = fraction of (prompt × platform) cells that returned a response.
+  // Anything below 70% — or any platform with zero successes — is "partial";
+  // the audit still completes, but the report carries a flag so the UI can
+  // disclose the gap honestly instead of pretending the score is full-coverage.
+  const coverage = totalAttempts === 0 ? 0 : totalSuccesses / totalAttempts;
+  const anyPlatformBlank = PLATFORMS.some((p) => (platformSuccess[p] ?? 0) === 0);
+  const partial = coverage < 0.7 || anyPlatformBlank;
+  const breakdown = {
+    ...score,
+    coverage,
+    platformSuccess,
+    partial,
+  };
+
   await db
     .update(schema.audits)
     .set({
       status: "done",
       score: score.overall,
-      breakdownJson: score,
+      breakdownJson: breakdown,
       completedAt: new Date(),
     })
     .where(eq(schema.audits.id, auditId));

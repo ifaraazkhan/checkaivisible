@@ -5,7 +5,7 @@ import { sampleEngine, aggregateRuns, type SampledRun } from "../sample.js";
 import { DisplayPicker, canonicalKey } from "../canonical.js";
 import { rankLedger, type LedgerEntryInput } from "../ledger-rank.js";
 import { currentWeekStart } from "../domain-check.js";
-import { canSpend, getInternalApiKeyId, recordSpend } from "../spend-cap.js";
+import { confirmSpend, releaseSpend, reserveSpend } from "../spend-cap.js";
 import type { Platform } from "../types.js";
 
 // One-shot: add the PERPLEXITY engine to ledgers that were built chatgpt+gemini
@@ -60,7 +60,6 @@ async function main() {
   const limit = process.argv[2] ? parseInt(process.argv[2], 10) : Infinity;
   const db = getDb();
   const weekStart = currentWeekStart();
-  const apiKeyId = await getInternalApiKeyId();
 
   const cats = await db.select().from(schema.categories);
   console.log(`[backfill-pplx] ${cats.length} categories, week_start=${weekStart.toISOString().slice(0, 10)}\n`);
@@ -85,7 +84,12 @@ async function main() {
     if (existing.some((m) => m.engine === "perplexity")) { console.log(`  · skip ${cat.slug} → perplexity already present`); skipped++; continue; }
 
     attempted++;
-    if (!(await canSpend("perplexity"))) { console.log(`  ! stop ${cat.slug} → perplexity daily spend cap reached`); break; }
+    // Reserve the budget for the whole batch of perplexity runs for this category.
+    // We use one reservation as a budget gate, release it, and then per-run
+    // reserve+confirm so each call is independently capped.
+    const gate = await reserveSpend("perplexity");
+    if (!gate.ok) { console.log(`  ! stop ${cat.slug} → perplexity daily spend cap reached`); break; }
+    await releaseSpend(gate.id).catch(() => {});
 
     // 1) sample perplexity live (network only — no DB writes yet)
     let pruns: SampledRun[];
@@ -95,7 +99,10 @@ async function main() {
       console.log(`  ✗ err  ${cat.slug} → perplexity sample failed: ${(err as Error).message}`);
       failed++; continue;
     }
-    for (const run of pruns) await recordSpend(apiKeyId, "perplexity", run.response.latencyMs ?? 0, 200).catch(() => {});
+    for (const run of pruns) {
+      const r = await reserveSpend("perplexity");
+      if (r.ok) await confirmSpend(r.id, run.response.latencyMs ?? 0, 200).catch(() => {});
+    }
 
     // 2) rebuild snapshot from ALL engines' mentions (existing chatgpt+gemini + new perplexity)
     const all: MentionRow[] = [...existing];

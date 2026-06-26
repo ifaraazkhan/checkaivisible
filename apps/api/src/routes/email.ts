@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb, schema } from "@cav/db";
 import { sendEmail } from "../email/client.js";
 import { betaWelcomeEmail, leadNotifyEmail } from "../email/templates.js";
+import { checkAndRecordRoute, clientIp } from "../rate-limit.js";
 
 export const email = new Hono();
 
@@ -19,6 +20,14 @@ email.post("/capture", async (c) => {
   const parsed = captureSchema.safeParse(body);
   if (!parsed.success) {
     return c.json({ error: "invalid_input", details: parsed.error.flatten() }, 400);
+  }
+
+  // Per-IP throttle so a bot can't fire-hose us with fake captures, spamming the
+  // outbound mailer + our LEAD_NOTIFY inbox.
+  const ip = clientIp({ get: (h) => c.req.header(h) ?? null });
+  const rate = await checkAndRecordRoute("email_capture", ip);
+  if (!rate.ok) {
+    return c.json({ error: "rate_limited", retryAfterSec: rate.retryAfterSec }, 429);
   }
 
   const db = getDb();

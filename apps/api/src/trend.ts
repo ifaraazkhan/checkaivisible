@@ -1,6 +1,6 @@
 import { getDb, schema, eq, desc, sql } from "@cav/db";
 import { firstAvailableEngine } from "./llm/engines.js";
-import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { confirmSpend, releaseSpend, reserveSpend } from "./spend-cap.js";
 import {
   slugify,
   titleCase,
@@ -142,7 +142,9 @@ export type TrendClass = { kind: TrendKind; phrase: string | null };
 // we never mint on an uncertain signal).
 export async function classifyTrend(term: string): Promise<TrendClass> {
   const engine = firstAvailableEngine();
-  if (!engine || !(await canSpend(engine.platform))) return { kind: "noise", phrase: null };
+  if (!engine) return { kind: "noise", phrase: null };
+  const reservation = await reserveSpend(engine.platform);
+  if (!reservation.ok) return { kind: "noise", phrase: null };
 
   const prompt =
     `A topic is trending right now: "${term}".\n` +
@@ -158,9 +160,7 @@ export async function classifyTrend(term: string): Promise<TrendClass> {
 
   try {
     const res = await engine.fn(prompt, null);
-    await getInternalApiKeyId()
-      .then((id) => recordSpend(id, engine.platform, res.latencyMs ?? 0, 200))
-      .catch(() => {});
+    await confirmSpend(reservation.id, res.latencyMs ?? 0, 200).catch(() => {});
     const line = res.responseText.trim().split("\n").find((l) => l.includes("|")) ?? "";
     const [rawKind, rawPhrase] = line.split("|").map((s) => s.trim());
     const kind = (["brand", "category", "noise"] as const).find((k) => rawKind?.toLowerCase().includes(k)) ?? "noise";
@@ -172,6 +172,7 @@ export async function classifyTrend(term: string): Promise<TrendClass> {
     if (!phrase || words.length < 2 || words.length > 8) return { kind: "noise", phrase: null };
     return { kind, phrase };
   } catch {
+    await releaseSpend(reservation.id).catch(() => {});
     return { kind: "noise", phrase: null };
   }
 }

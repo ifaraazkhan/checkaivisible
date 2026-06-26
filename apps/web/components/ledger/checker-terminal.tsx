@@ -64,7 +64,7 @@ export function CheckerTerminal() {
       <form onSubmit={onSubmit} className="p-5 font-mono text-sm sm:p-6">
         <p className="text-muted-foreground">
           <span className="text-primary">$</span> checkaivisible scan{" "}
-          <span className="text-foreground/50">--index ai-visibility --engines chatgpt,perplexity,gemini,claude --signals 40+</span>
+          <span className="text-foreground/50">--index ai-visibility --engines chatgpt,gemini,perplexity --signals 40+</span>
         </p>
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">

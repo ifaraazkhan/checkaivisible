@@ -13,6 +13,7 @@ import { enqueueDomainCheck } from "../worker.js";
 import { buildSolution } from "../readiness/solution.js";
 import { sendEmail } from "../email/client.js";
 import { fixPlanEmail, leadNotifyEmail } from "../email/templates.js";
+import { checkAndRecordRoute, clientIp } from "../rate-limit.js";
 
 const APP_URL = process.env.APP_URL ?? "https://checkaivisible.com";
 
@@ -71,6 +72,14 @@ check.post("/", async (c) => {
   if (!domain) return c.json({ error: "invalid_domain" }, 400);
 
   const { userId } = parsed.data;
+
+  // Per-IP throttle for the public checker (no captcha by design — we don't want
+  // hero-flow friction). Logged-in users still get the weekly cap below.
+  const ip = clientIp({ get: (h) => c.req.header(h) ?? null });
+  const rate = await checkAndRecordRoute("check", ip);
+  if (!rate.ok) {
+    return c.json({ error: "rate_limited", retryAfterSec: rate.retryAfterSec }, 429);
+  }
 
   // Enforce the free weekly limit for logged-in users — but repeats of a domain
   // they already checked this week are free (served from cache, no new spend).

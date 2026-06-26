@@ -128,7 +128,7 @@ All engine calls go through `withResilience` (`apps/api/src/llm/resilience.ts`, 
 - Net effect: a 429 self-heals (slower pass) instead of failing. Gemini 429s no longer break a run.
 
 ### Engine keys / data quality
-- `PERPLEXITY_API_KEY` left blank **intentionally** — code skips Perplexity gracefully (`[refresh] skip perplexity`), never fails. Add only if 3-engine consensus is wanted.
+- **All three engine keys live in prod** (`OPENAI_API_KEY`, `GEMINI_API_KEY`, `PERPLEXITY_API_KEY`) — Perplexity was added 2026-06; the 3-engine consensus the public copy promises is now real. Local dev frequently runs with only chatgpt + gemini; `engines.ts` skips any platform whose env key is missing without failing.
 - **Gemini key is PAID and working** (verified 2026-06-16: live call returns `HTTP 200`, `"serviceTier":"standard"`). Earlier `429 RESOURCE_EXHAUSTED` entries in logs were historical, from before billing took effect. If 429s recur, the request is being counted against `…-FreeTier` → the API key in use belongs to a GCP project without billing; confirm the key's project = the billed project. The 429 is **caught and non-fatal** either way (doesn't fail the cron, just drops that engine for the run).
 
 ## Gotchas hit during this deploy (do not repeat)
@@ -145,7 +145,7 @@ All engine calls go through `withResilience` (`apps/api/src/llm/resilience.ts`, 
 - [x] ~~Crons failing~~ — replaced Railway cron with in-process scheduler (2026-06-16). 3 cron services deleted.
 - [x] ~~Gemini 429s~~ — paid key confirmed (`serviceTier:standard`) + `withResilience` retry/backoff/throttle added.
 - [ ] **Rotate the Postgres password** (was pasted in chat during setup). Also rotate the Gemini key (partially printed once).
-- [ ] `PERPLEXITY_API_KEY` left blank intentionally — add only if 3rd engine wanted (code skips it cleanly).
+- [x] ~~`PERPLEXITY_API_KEY`~~ — set in Railway (2026-06); 3-engine consensus active.
 - [ ] Resend email — DNS records + code not wired yet.
 - [ ] Google OAuth login (Auth.js) — credentials + code not wired yet. Redirect URI when built: `https://checkaivisible.com/api/auth/callback/google`.
 - [ ] Dodo Payments — deferred per product plan.

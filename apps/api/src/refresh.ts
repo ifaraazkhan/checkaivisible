@@ -5,7 +5,7 @@ import { sampleEngine, aggregateRuns } from "./sample.js";
 import { canonicalKey, DisplayPicker } from "./canonical.js";
 import { rankLedger, type LedgerEntryInput } from "./ledger-rank.js";
 import { currentWeekStart } from "./domain-check.js";
-import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { confirmSpend, releaseSpend, reserveSpend } from "./spend-cap.js";
 import { revalidateLedger } from "./lib/revalidate.js";
 
 // Weekly leaderboard refresh for one category: run each engine 5×, persist every
@@ -45,13 +45,21 @@ export async function refreshCategory(
       console.warn(`[refresh] skip ${e.platform} — no ${e.env}`);
       continue;
     }
-    if (!(await canSpend(e.platform))) {
-      console.warn(`[refresh] skip ${e.platform} — daily spend cap reached`);
-      continue;
-    }
 
     let runs;
     try {
+      // Reserve up-front for the WHOLE batch of sampled runs by reserving each
+      // run individually inside sampleEngine isn't possible from here, so we
+      // approximate by reserving one slot to gate entry; per-run reservations
+      // happen below before each persist. If the gate fails we skip the engine.
+      const gate = await reserveSpend(e.platform);
+      if (!gate.ok) {
+        console.warn(`[refresh] skip ${e.platform} — daily spend cap reached`);
+        continue;
+      }
+      // Release the gate immediately — we use it only as a budget probe; the
+      // real per-run reservations happen below as runs complete.
+      await releaseSpend(gate.id).catch(() => {});
       runs = await sampleEngine(e.fn, prompt);
     } catch (err) {
       console.error(`[refresh] ${e.platform} failed:`, err);
@@ -59,10 +67,17 @@ export async function refreshCategory(
     }
     enginesUsed.push(e.platform);
 
-    // record spend + persist every per-run mention
-    const apiKeyId = await getInternalApiKeyId();
+    // Book each per-run cost atomically. If a run pushes us over the cap we
+    // still persist the mentions — the LLM call already happened upstream —
+    // but log it so we can tune the cap. Treats post-hoc booking as a single
+    // race-safe insert via reserve+confirm to keep the same code path.
     for (const run of runs) {
-      await recordSpend(apiKeyId, e.platform, run.response.latencyMs ?? 0, 200).catch(() => {});
+      const r = await reserveSpend(e.platform);
+      if (r.ok) {
+        await confirmSpend(r.id, run.response.latencyMs ?? 0, 200).catch(() => {});
+      } else {
+        console.warn(`[refresh] cap hit mid-batch on ${e.platform}; mention persisted but cost not booked`);
+      }
       if (run.response.mentions.length === 0) continue;
       await db.insert(schema.businessMentions).values(
         run.response.mentions.map((m) => ({

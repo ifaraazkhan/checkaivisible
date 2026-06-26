@@ -1,5 +1,5 @@
 import { firstAvailableEngine } from "./llm/engines.js";
-import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { confirmSpend, releaseSpend, reserveSpend } from "./spend-cap.js";
 
 // Theme tagging (Planning/category-discovery.md): a small FIXED taxonomy used for
 // browse-by-group on /leaderboards. A free keyword heuristic covers most cases; the
@@ -80,7 +80,9 @@ function snapToThemeLoose(raw: string): Theme | null {
 // can't decide. Falls back to "Other" on any failure / spend cap.
 async function llmTheme(title: string, query: string): Promise<string> {
   const engine = firstAvailableEngine();
-  if (!engine || !(await canSpend(engine.platform))) return FALLBACK_THEME;
+  if (!engine) return FALLBACK_THEME;
+  const reservation = await reserveSpend(engine.platform);
+  if (!reservation.ok) return FALLBACK_THEME;
   const prompt =
     `Classify this product/service category into EXACTLY ONE of these themes:\n` +
     `${THEMES.join(", ")}.\n\n` +
@@ -88,13 +90,12 @@ async function llmTheme(title: string, query: string): Promise<string> {
     `Reply with only the theme name, nothing else.`;
   try {
     const res = await engine.fn(prompt, null);
-    await getInternalApiKeyId()
-      .then((id) => recordSpend(id, engine.platform, res.latencyMs ?? 0, 200))
-      .catch(() => {});
+    await confirmSpend(reservation.id, res.latencyMs ?? 0, 200).catch(() => {});
     // The reply is a bare theme name — match the first line against the taxonomy.
     const raw = res.responseText.trim().split("\n")[0] ?? "";
     return snapToTheme(raw) ?? snapToThemeLoose(raw) ?? FALLBACK_THEME;
   } catch {
+    await releaseSpend(reservation.id).catch(() => {});
     return FALLBACK_THEME;
   }
 }

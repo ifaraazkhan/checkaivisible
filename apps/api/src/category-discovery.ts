@@ -1,11 +1,11 @@
 import { getDb, schema, eq, desc, sql } from "@cav/db";
-import { displayCategoryTitle } from "@cav/shared/category-title";
+import { displayCategoryTitle, displayCategoryQuery } from "@cav/shared/category-title";
 import type { Platform } from "./types.js";
 import { SYSTEM_PROMPT } from "./llm/prompts.js";
 import { firstAvailableEngine } from "./llm/engines.js";
 import { canonicalKey } from "./canonical.js";
 import { refreshCategory } from "./refresh.js";
-import { canSpend, getInternalApiKeyId, recordSpend } from "./spend-cap.js";
+import { confirmSpend, releaseSpend, reserveSpend } from "./spend-cap.js";
 import { classifyTheme } from "./theme.js";
 
 // Phase 1 of category auto-discovery (Planning/category-discovery.md): a FEEDER for
@@ -118,7 +118,8 @@ export function titleCase(phrase: string): string {
 }
 
 export function toQuery(phrase: string): string {
-  return `What is the ${phrase}?`;
+  // Plural-aware: "best email marketing platforms" → "What are the best …?"
+  return displayCategoryQuery(phrase);
 }
 
 // Keep only commercial "best/top X" phrases of a sane length.
@@ -180,16 +181,22 @@ async function harvestFromAutocomplete(seeds: string[]): Promise<HarvestedCandid
 async function harvestFromEngine(): Promise<HarvestedCandidate[]> {
   const engine = firstAvailableEngine();
   if (!engine) return [];
-  if (!(await canSpend(engine.platform))) return [];
+  const reservation = await reserveSpend(engine.platform);
+  if (!reservation.ok) return [];
 
   const prompt =
     "List 40 distinct product or service categories that people commonly ask AI assistants to recommend " +
     '(CRMs, email tools, etc.). Format every line as a numbered item exactly like: "1. best X — a 6-word note". ' +
     'Use lowercase "best X" phrases (e.g. "best crm", "best email marketing tool"). No headings, no extra text.';
 
-  const res = await engine.fn(prompt, null);
-  const apiKeyId = await getInternalApiKeyId();
-  await recordSpend(apiKeyId, engine.platform, res.latencyMs ?? 0, 200).catch(() => {});
+  let res;
+  try {
+    res = await engine.fn(prompt, null);
+  } catch (err) {
+    await releaseSpend(reservation.id).catch(() => {});
+    throw err;
+  }
+  await confirmSpend(reservation.id, res.latencyMs ?? 0, 200).catch(() => {});
 
   const out: HarvestedCandidate[] = [];
   for (const m of res.mentions) {
@@ -271,17 +278,18 @@ export type ProbeResult = { engine: Platform; brands: number; names: string[] };
 export async function probeQuery(query: string): Promise<ProbeResult | null> {
   const engine = firstAvailableEngine();
   if (!engine) return null;
-  if (!(await canSpend(engine.platform))) return null;
+  const reservation = await reserveSpend(engine.platform);
+  if (!reservation.ok) return null;
 
   let res;
   try {
     res = await engine.fn(query, SYSTEM_PROMPT);
   } catch (err) {
     console.error(`[probe] query failed:`, (err as Error).message);
+    await releaseSpend(reservation.id).catch(() => {});
     return null;
   }
-  const apiKeyId = await getInternalApiKeyId();
-  await recordSpend(apiKeyId, engine.platform, res.latencyMs ?? 0, 200).catch(() => {});
+  await confirmSpend(reservation.id, res.latencyMs ?? 0, 200).catch(() => {});
 
   const brands = new Set<string>();
   for (const m of res.mentions) {
@@ -305,12 +313,13 @@ export async function probeCandidates(limit = 10): Promise<{ probed: number }> {
 
   let probed = 0;
   for (const cand of pending) {
-    if (!(await canSpend(engine.platform))) {
-      console.warn("[probe] daily spend cap reached — stopping");
+    // probeQuery itself reserves+confirms (or releases on failure). It returns
+    // null when the cap is reached, so we just stop iterating in that case.
+    const r = await probeQuery(cand.query);
+    if (!r) {
+      console.warn("[probe] no result (engine error or daily spend cap)");
       break;
     }
-    const r = await probeQuery(cand.query);
-    if (!r) continue; // engine error / cap — try the next one
 
     await db
       .update(schema.categoryCandidates)
