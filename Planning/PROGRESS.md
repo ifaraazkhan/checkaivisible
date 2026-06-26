@@ -1,8 +1,7 @@
 # Build Progress — CheckAIVisible
 
 > Living status of the v2 build. Read this first in a new session. Pairs with
-> dev-roadmap.md (the plan), launch-monetization.md (the model), and
-> marketing-product-details.md (strategy/moat).
+> dev-roadmap.md (the plan) and marketing-product-details.md (strategy/moat).
 
 _Last updated: 2026-06-14_
 
@@ -88,7 +87,7 @@ weekly limit, returns 402 upgrade) and `GET /check/:domain`.
 - Note: business detail is only populated for categories that have been `refresh`ed (best-crm). Seeded categories show "run a refresh" message.
 
 ## NEXT (in priority order)
-1. **Stages 3–5 (need keys)**: Google login (Auth.js, `apps/web`), Dodo Payments checkout+webhook, Resend email delivery + weekly re-check. See launch-monetization.md.
+1. **Stages 3–5 (need keys)**: Google login (Auth.js, `apps/web`), Dodo Payments checkout+webhook, Resend email delivery + weekly re-check.
 2. **Production worker / scheduler** for the weekly refresh across all categories (currently manual via `pnpm refresh`).
 3. **Expand prompts**: refresh uses the category's single `query`; the ~20 intent-archetype prompts per category are not built yet.
 4. **SSG/SEO**: category pages are `force-dynamic` for now; revisit static generation + sitemap from live index for launch.

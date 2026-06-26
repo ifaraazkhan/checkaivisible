@@ -1,8 +1,7 @@
 # Free-launch plan + AEO/SEO + beta loop + bare-minimum paid
 
 _Created 2026-06-15. Branch at planning time: `feat/v2-leaderboard-redesign` (commit
-4d84ac7). Pairs with `pipelines-explained.md`, `category-discovery.md`,
-`launch-monetization.md`, `PRODUCT.md`._
+4d84ac7). Pairs with `pipelines-explained.md`, `category-discovery.md`, and `PRODUCT.md`._
 
 The user's decision: **run the cron directly on production at launch** — so the
 scheduler/cron is NOT a pre-launch dev blocker. Everything below is what *is*.

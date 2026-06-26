@@ -318,8 +318,7 @@ invisible no matter how nice its schema is.
 }
 ```
 
-**Free vs paid blur (decision: build full, blur later).** Natural blur line, fully
-consistent with the depth-paywall in `launch-monetization.md`:
+**Free vs paid blur (decision: build full, blur later).** Natural blur line:
 
 - **Free (the diagnosis / the wound):** overall score + tier, per-pillar scores,
   the **list of gaps** (what's wrong + severity), the entity-presence honesty note.

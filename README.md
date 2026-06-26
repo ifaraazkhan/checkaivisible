@@ -102,7 +102,7 @@ Living design docs in `Planning/`:
 - `free-launch-plan.md` — what's left before the free launch + the paid/beta plan.
 - `category-discovery.md` — how categories get picked and automated.
 - `ai-readiness-audit-spec.md` — the checker's 7-pillar scoring spec.
-- `launch-monetization.md`, `dev-roadmap.md`, `marketing-product-details.md` — strategy.
+- `dev-roadmap.md`, `marketing-product-details.md`, `v2-plan.md`, `ledger-strategy.md` — strategy.
 
 ## License
 

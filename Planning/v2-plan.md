@@ -1,6 +1,6 @@
 # checkaivisible.com — V2 Plan (Leaderboard-First, Free)
 
-> **Status:** v2 plan, June 2026. **Supersedes `v1-plan.md`** (which superseded `core-idea.md`).
+> **Status:** v2 plan, June 2026. Supersedes prior plan iterations.
 > **Strategic shift:** From "free checker as funnel for agency dashboard + data API" → **"Live public leaderboard of who AI actually recommends — 100% free, traction-first."** The checker stays, demoted to a feature. Revenue is explicitly NOT a v2 goal.
 > **Design system:** see [`Planning/design.md`](design.md) ("Obsidian Ledger").
 
@@ -132,6 +132,5 @@ The audience + longitudinal dataset keep every v1 monetization door open: agency
 
 ## 7. References
 
-- `Planning/v1-plan.md` — superseded; mechanism map (§3), competitive landscape (§4), cache architecture (§9–10) remain accurate and referenced
 - `Planning/design.md` — Obsidian Ledger design system (v2 companion doc)
 - Validation review (June 2026, conversation): Local Falcon now tracks ChatGPT/Apple Maps; free checker space captured by Ahrefs/Semrush/HubSpot — drivers of the leaderboard-first pivot

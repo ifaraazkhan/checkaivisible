@@ -60,8 +60,7 @@ build independently.
 in with Google to get the full free report (on-screen + emailed), and can pay to
 unlock the fix or subscribe. Distribution loop AND first revenue are testable.*
 
-See [launch-monetization.md](./launch-monetization.md) for the full flow/paywall
-spec. Phase 1 includes basic monetization (both paid paths) by design — launch
+Phase 1 includes basic monetization (both paid paths) by design — launch
 with a working checkout, not just a free tool.
 
 **Foundation**
@@ -141,10 +140,9 @@ Phase 1.)*
 
 1. Launch kit (Product Hunt / HN / X) + "now tracking X" moments.
 2. This-week's-tape → shareable social content.
-3. Founder outreach execution (`outbound-scripts.md`).
-4. Core Web Vitals pass.
-5. `llms.txt` / AI-crawler access so the engines cite the site itself.
-6. Cost monitoring + spend alerts on LLM usage.
+3. Core Web Vitals pass.
+4. `llms.txt` / AI-crawler access so the engines cite the site itself.
+5. Cost monitoring + spend alerts on LLM usage.
 7. Per-page metadata + OG image coverage.
 8. Data accuracy QA cadence.
 
