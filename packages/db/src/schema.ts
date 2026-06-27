@@ -503,3 +503,62 @@ export const purchases = cav1.table(
     domainIdx: index("purchases_domain_idx").on(t.domain),
   }),
 );
+
+/* ============================================================================
+   Outbound outreach — week-over-week movement detection on brand rankings.
+   Lazy domain resolution per brand, founder-driven manual sends. Created via
+   direct SQL (DB is push-built; do NOT drizzle generate/migrate). See
+   apps/api/src/scripts/migrate-outreach.ts.
+   ========================================================================== */
+
+// One row per detected rank movement worth reaching out about. The diff job
+// reads two consecutive weeks of business_mentions and inserts here.
+// brand_name_key is canonicalKey(name) so "Notion" and "Notion AI" don't
+// double-fire. Unique constraint on (event_type, brand_name_key, category_slug,
+// week_start) makes the diff job safe to re-run.
+export const outboundEvents = cav1.table(
+  "outbound_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventType: text("event_type").notNull(), // rank_jumped_into_top5 | rank_improved_3plus | first_in_top10 | new_entrant
+    brandName: text("brand_name").notNull(), // display form (most frequent variant)
+    brandNameKey: text("brand_name_key").notNull(), // canonicalKey(name) — dedupes variants
+    categorySlug: text("category_slug")
+      .notNull()
+      .references(() => categories.slug, { onDelete: "cascade" }),
+    weekStart: timestamp("week_start", { withTimezone: true }).notNull(),
+    prevRank: integer("prev_rank"), // null for new_entrant / first_in_top10
+    newRank: integer("new_rank").notNull(),
+    score: integer("score").notNull(), // current week composite score
+    payloadJson: jsonb("payload_json"), // citations, reasons, sample engine quotes
+    status: text("status").notNull().default("pending"), // pending | drafted | sent | replied | suppressed | skipped
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    dedupe: unique("outbound_events_dedupe_unq").on(
+      t.eventType,
+      t.brandNameKey,
+      t.categorySlug,
+      t.weekStart,
+    ),
+    statusIdx: index("outbound_events_status_idx").on(t.status, t.createdAt),
+    brandIdx: index("outbound_events_brand_idx").on(t.brandNameKey),
+  }),
+);
+
+// Brand -> domain resolution cache. Lazy: only filled when a brand first emits
+// an event. brand_name_key (canonicalKey) is PK because raw names vary between
+// engines. override_domain wins over the resolved one (founder manual fix).
+export const brandDomains = cav1.table(
+  "brand_domains",
+  {
+    brandNameKey: text("brand_name_key").primaryKey(),
+    brandName: text("brand_name").notNull(), // most-recent display form
+    domain: text("domain"), // null when all 3 passes failed
+    confidence: text("confidence"), // high | medium | low
+    source: text("source"), // citations | knowledge_graph | llm | manual
+    overrideDomain: text("override_domain"), // founder fix; takes precedence over `domain`
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+);
