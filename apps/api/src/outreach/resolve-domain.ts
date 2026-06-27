@@ -10,8 +10,10 @@ import { reserveSpend, confirmSpend, releaseSpend } from "../spend-cap.js";
 //   Pass 1 (free)   — mode of primary domains across this brand's
 //                     business_mentions.citations_json. Highest confidence when
 //                     it agrees across many runs.
-//   Pass 2 (free)   — Google Knowledge Graph Search API. Requires
-//                     GOOGLE_KNOWLEDGE_GRAPH_API_KEY; gracefully skipped otherwise.
+//   Pass 2 (free)   — Google Knowledge Graph Search API. Uses
+//                     GOOGLE_KNOWLEDGE_GRAPH_API_KEY, falling back to
+//                     GOOGLE_PLACES_API_KEY (same GCP project). Gracefully
+//                     skipped when neither is set.
 //   Pass 3 (cheap)  — LLM fallback through firstAvailableEngine(), wrapped in
 //                     the existing spend cap. Last resort.
 //
@@ -213,8 +215,12 @@ function isGenericHost(host: string): boolean {
 
 // ---- pass 2: Google Knowledge Graph ---------------------------------------
 
+// Reuses GOOGLE_PLACES_API_KEY (same GCP project) when GOOGLE_KNOWLEDGE_GRAPH_API_KEY
+// isn't set — both APIs accept the same key as long as Knowledge Graph Search
+// is enabled on the project and the key isn't service-restricted.
 async function resolveFromKnowledgeGraph(brandName: string): Promise<string | null> {
-  const apiKey = process.env.GOOGLE_KNOWLEDGE_GRAPH_API_KEY;
+  const apiKey =
+    process.env.GOOGLE_KNOWLEDGE_GRAPH_API_KEY ?? process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) return null;
 
   const url =
