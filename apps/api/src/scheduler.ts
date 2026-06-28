@@ -1,6 +1,7 @@
 import { tick, runDueCategories, autoPromote } from "./discovery-scheduler.js";
 import { runTrendLane, decayTrending } from "./trend.js";
 import { harvest, probeCandidates } from "./category-discovery.js";
+import { emitOutboundEvents } from "./outreach/diff.js";
 
 // In-process discovery scheduler.
 // Replaces the 3 separate Railway cron services (cron-refresh / cron-trends / cron-catalog).
@@ -55,6 +56,24 @@ export async function runExclusive(label: string, fn: () => Promise<void>): Prom
 export async function runRefresh(): Promise<void> {
   const r = await runDueCategories({ limit: 20 });
   console.log(`[task:refresh] refreshed ${r.ran.length} due ledger(s), ${r.remaining} remaining`);
+  // After every refresh pass, compute outreach events from the snapshots we
+  // just produced. Cheap (no LLM), idempotent (unique constraint dedupes).
+  try {
+    const e = await emitOutboundEvents();
+    console.log(
+      `[task:refresh] outreach: scanned ${e.categories} cat(s), emitted ${e.emitted}, skipped ${e.skippedExisting} dupes`,
+    );
+  } catch (err) {
+    console.error(`[task:refresh] outreach event emit failed:`, err);
+  }
+}
+
+/** outreach-only: re-run the diff without refreshing ledgers (for backfill / debugging). */
+export async function runOutreachDiff(): Promise<void> {
+  const e = await emitOutboundEvents();
+  console.log(
+    `[task:outreach] scanned ${e.categories} cat(s), emitted ${e.emitted}, skipped ${e.skippedExisting} dupes`,
+  );
 }
 
 /** cron-trends: detect spikes, classify, mint/attach trending ledgers, then cool stale ones. */

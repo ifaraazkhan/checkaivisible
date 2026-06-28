@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./category-title": "./src/category-title.ts",
-    "./refresh-time": "./src/refresh-time.ts"
+    "./refresh-time": "./src/refresh-time.ts",
+    "./outbound-diff": "./src/outbound-diff.ts"
   },
   "scripts": {
     "test": "vitest run",
