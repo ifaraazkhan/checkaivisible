@@ -29,8 +29,9 @@ async function main() {
        AND SUM(CASE WHEN week_start = ${lastIso}::timestamptz THEN 1 ELSE 0 END) > 0
     ORDER BY category_slug
   `);
-  console.log(`categories with both weeks of data: ${rows.length}`);
-  for (const r of rows as Array<{ category_slug: string; this_wk: number; last_wk: number }>) {
+  const eligibleRows = rows as unknown as Array<{ category_slug: string; this_wk: number; last_wk: number }>;
+  console.log(`categories with both weeks of data: ${eligibleRows.length}`);
+  for (const r of eligibleRows) {
     console.log(`  - ${r.category_slug}  this=${r.this_wk}  last=${r.last_wk}`);
   }
 
@@ -44,8 +45,9 @@ async function main() {
     ORDER BY latest DESC NULLS LAST
     LIMIT 20
   `);
+  const recentRows = anyRecent as unknown as Array<{ category_slug: string; latest: Date | string; weeks: number }>;
   console.log(`\nrecent categories (latest 4 weeks):`);
-  for (const r of anyRecent as Array<{ category_slug: string; latest: Date; weeks: number }>) {
+  for (const r of recentRows) {
     console.log(`  - ${r.category_slug}  latest=${new Date(r.latest).toISOString()}  weeks=${r.weeks}`);
   }
 
